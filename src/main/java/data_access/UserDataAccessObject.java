@@ -13,7 +13,7 @@ import org.json.JSONArray;
 // https://api.steampowered.com/<Interface>/<Method>/v<Version>/?key=<apikey>&<args>
 
 // This is the DAO for a logged in user. (Steamid -> User object)
-public class UserDataAcessObject {
+public class UserDataAccessObject {
     private static final String apikey = System.getenv("APIKEY");
 
     //Override this later in accordance with furture interfaces.
@@ -24,15 +24,16 @@ public class UserDataAcessObject {
         List<Long> ids = getFriendList(steamid, client);
         List<User> friends = getUserData(ids, client);
 
-        // Response -> players -> index list (steamid: String, personaname: Stirng, avatar, avatarmedium, avatarfull, avatarhash, realname, loccountrycode, gameid, gameextrainfo)
         ArrayList<Game> lib = getUserLibrary(steamid, client);
         ArrayList<Game> recent = getUserRecent(steamid, client);
 
         String username = "";
         String avatar = "";
+
+        // NOTE: (steamid: String, personaname: Stirng, avatar, avatarmedium, avatarfull, avatarhash, realname, loccountrycode, gameid, gameextrainfo)
         try {
             Request request = new Request.Builder()
-                .url(String.format("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s", apikey, steamid))
+                .url(String.format("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%d", apikey, steamid))
                 .build();
             final Response response = client.newCall(request).execute();
             final JSONObject responseBody = new JSONObject(response.body().string());
@@ -43,7 +44,7 @@ public class UserDataAcessObject {
             username = player.getString("personaname");
             avatar = player.getString("avatarfull");
         } catch (IOException | JSONException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e + "[AT: Get]");
         }
 
         return new User(steamid, username, friends, lib, recent, avatar);
@@ -71,20 +72,20 @@ public class UserDataAcessObject {
 
         try {
             Request request = new Request.Builder()
-                .url(String.format("https://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%l&relationship=%s", apikey, steamid, "all"))
+                .url(String.format("https://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%d&relationship=%s", apikey, steamid, "all"))
                 .build();
             final Response response = client.newCall(request).execute();
             final JSONObject responseBody = new JSONObject(response.body().string());
             if (responseBody.isEmpty())
                 throw new RuntimeException("Friendslist is private!");
 
-            final JSONArray friendlist = responseBody.getJSONObject("friendlist").getJSONArray("friends");
+            final JSONArray friendlist = responseBody.getJSONObject("friendslist").getJSONArray("friends");
             for (int i = 0; i < friendlist.length(); ++i) {
                 JSONObject person = friendlist.getJSONObject(i);
                 out.add(Long.parseLong(person.getString("steamid")));
             }
         } catch (IOException | JSONException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e + "[AT: FriendList]");
         }
         return out;
     }
@@ -113,10 +114,10 @@ public class UserDataAcessObject {
                     ArrayList<Game> recent = getUserRecent(playerId, client);
 
                     // Friends don't get their own friendlist. 
-                    out.add(new User(playerId, player.getString("personaname"), null, lib, recent, player.getString("avatarfull"))); 
+                    out.add(new User(playerId, player.getString("personaname"), null, lib, recent, player.getString("avatarfull")));
                 }
             } catch (IOException | JSONException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException(e + "[AT: UserData]");
             }
         }
 
@@ -127,7 +128,7 @@ public class UserDataAcessObject {
         ArrayList<Game> lib = new ArrayList<>();
         try {
             Request request = new Request.Builder()
-                .url(String.format("https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%l&format=json&include_appinfo=true", apikey, steamid))
+                .url(String.format("https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%d&format=json&include_appinfo=true", apikey, steamid))
                 .build();
 
             final Response response = client.newCall(request).execute();
@@ -136,36 +137,43 @@ public class UserDataAcessObject {
             final JSONArray library = responseBody.getJSONObject("response").getJSONArray("games");
             for(int i = 0; i < library.length(); i++) {
                 JSONObject game = library.getJSONObject(i);
-                Game g = new Game(game.getLong("appid"), game.getString("name"), game.getString("image_icon_url"), game.getLong("playtime_forever"));
+                Game g = new Game(game.getLong("appid"), game.getString("name"), game.getString("img_icon_url"), game.getLong("playtime_forever"));
                 lib.add(g);
             }
         } catch (IOException | JSONException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e + "[AT: Library]");
         }
         return lib;
     }
 
+    // TODO: Add error handling and fallthrough on failure.
     private ArrayList<Game> getUserRecent(long steamid, OkHttpClient client) {
         ArrayList<Game> out = new ArrayList<>();
         try {
             Request request = new Request.Builder()
-            .url(String.format("https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=%s&steamid=%l&format=json", apikey, steamid))
+            .url(String.format("https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=%s&steamid=%d&format=json", apikey, steamid))
             .build();
 
             final Response response = client.newCall(request).execute();
             final JSONObject responseBody = new JSONObject(response.body().string());
-            if (responseBody.getJSONObject("response").isEmpty())
-            throw new RuntimeException("Library is private!");
+            if (responseBody.getJSONObject("response").isEmpty()) {
+                // Private profile, unsupported feature.
+                return new ArrayList<>();
+            }
 
+            if(responseBody.getJSONObject("response").getInt("total_count") == 0) {
+                // No games in the past 2 weeks.
+                return new ArrayList<>();
+            }
             final JSONArray recentGames = responseBody.getJSONObject("response").getJSONArray("games");
             for(int i = 0; i < recentGames.length(); ++i) {
                 JSONObject game = recentGames.getJSONObject(i);
-                Game g = new Game(game.getLong("appid"), game.getString("name"), game.getString("image_icon_url"), game.getLong("playtime_forever"));
+                Game g = new Game(game.getLong("appid"), game.getString("name"), game.getString("img_icon_url"), game.getLong("playtime_forever"));
                 out.add(g);
             }
 
         } catch (IOException | JSONException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e + "[AT: Recent Games]");
         }
         return out;
     }

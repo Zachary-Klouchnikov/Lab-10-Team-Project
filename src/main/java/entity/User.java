@@ -47,6 +47,6 @@ public class User {
     // Convinient string representation for debug purposes.
     @Override
     public String toString() {
-        return String.format("[\n\tid: %l\n\tusername: %s\n\tpicture: %s\n]", this.steamid, this.username, this.profilePicture);
+        return String.format("[\n\tid: %d\n\tusername: %s\n\tpicture: %s\n]", this.steamid, this.username, this.profilePicture);
     }
 }

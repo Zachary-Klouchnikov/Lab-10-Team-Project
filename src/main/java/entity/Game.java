@@ -34,6 +34,6 @@ public class Game {
     // Convinient string representation for debug purposes.
     @Override
     public String toString() {
-        return String.format("[\n\tappid: %l\n\ttitle: %s\n\tthumbnail: %s\n\tplaytime(minutes): %l\n]", this.appid, this.title, this.thumbnail, this.playtime);
+        return String.format("[\n\tappid: %d\n\ttitle: %s\n\tthumbnail: %s\n\tplaytime(minutes): %d\n]", this.appid, this.title, this.thumbnail, this.playtime);
     }
 }
