@@ -1,6 +1,7 @@
 package entity;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class User {
     private final long steamid;
@@ -10,13 +11,19 @@ public class User {
     private final List<Game> recentGames;
     private final String profilePicture;
 
-    public User(long id, String name, List<User> friends, List<Game> games, List<Game> recentGames, String profile) {
+    public User(long id, String name, List<User> friends, List<Game> games, String profile) {
         this.steamid = id;
         this.username = name;
         this.friends = friends;
         this.library = games;
-        this.recentGames = recentGames;
         this.profilePicture = profile;
+
+
+        this.recentGames = new ArrayList<>();
+        for (int i = 0; i < games.size(); ++i) {
+            if (games.get(i).getRecentPlaytime() == 0)
+                this.recentGames.add(games.get(i));
+        }
     }
 
     public long getId() {
@@ -47,6 +54,6 @@ public class User {
     // Convinient string representation for debug purposes.
     @Override
     public String toString() {
-        return String.format("[\n\tid: %d\n\tusername: %s\n\tpicture: %s\n]", this.steamid, this.username, this.profilePicture);
+        return String.format("User: [\n\tid: %d\n\tusername: %s\n\tpicture: %s\n]", this.steamid, this.username, this.profilePicture);
     }
 }
