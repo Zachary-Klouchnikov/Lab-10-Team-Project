@@ -103,6 +103,7 @@ public class UserDataAccessObject {
             for (int j = 0; j < processedIds[i].length; ++j)
                 stringedIds += processedIds[i][j] + ",";
 
+            // TODO: additional error handling required here.
             try {
                 Request request = new Request.Builder()
                     .url(String.format("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",apikey, stringedIds))
@@ -151,7 +152,9 @@ public class UserDataAccessObject {
             }
 
         } catch (IOException | JSONException e) {
-            throw new RuntimeException(e + "[AT: Library]");
+            // Since a private account with no games can be handled, then we do the same if the call fails.
+            // NOTE: This is subject to change.
+            return new ArrayList<>();
         }
         return out;
     }
