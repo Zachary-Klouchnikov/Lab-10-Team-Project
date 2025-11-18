@@ -5,16 +5,16 @@ import java.util.List;
 public class Game {
     private final long appid;
     private final String name;
-    private final int playtime_forever;
+    private final int playtime;
     private final String thumbnail;
-    private final List<Integer> content_descriptorids;
+    private final int recentPlaytime;
 
-    public Game(long appid, String title, int playtime_forever, String thumbnail, List<Integer> content_descriptorids) {
+    public Game(long appid, String title, int playtime_forever, String thumbnail, int recent_playtime) {
         this.appid = appid;
         this.name = title;
-        this.playtime_forever = playtime_forever;
+        this.playtime = playtime_forever;
         this.thumbnail = thumbnail;
-        this.content_descriptorids = content_descriptorids;
+        this.recentPlaytime = recent_playtime;
     }
 
     public long getId() {
@@ -25,30 +25,22 @@ public class Game {
         return this.name;
     }
 
+    // Get Playtime in minutes.
     public int getPlaytime() {
-        return this.playtime_forever;
+        return this.playtime;
     }
 
+    public int getRecentPlaytime() {
+        return this.recentPlaytime;
+    }
+
+    // This should return a string, when fed into an ImageDataAccessObject, actually returns an image.
     public String getThumbnail() {
         return this.thumbnail;
     }
 
-    public void getImage(){
-        // TODO: implement, return Image
-    }
-
-    public void getDescriptors(){
-        // TODO: implement, return List of strings containing categories ; List<String>
-    }
-
     @Override
     public String toString() {
-        return "Game{" +
-                "appid=" + appid +
-                ", name='" + name + '\'' +
-                ", playtime_forever=" + playtime_forever +
-                ", thumbnail='" + thumbnail + '\'' +
-                ", content_descriptorids=" + content_descriptorids +
-                '}';
+        return String.format("Game: [\n\tid: %d\n\ttitle: %s\n\tplaytime(minutes): %d\n\tthumbnail: %s\n\t recent playtime(min): %s\n]", this.appid, this.name, this.playtime, this.recentPlaytime);
     }
 }
