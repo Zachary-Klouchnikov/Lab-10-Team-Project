@@ -138,7 +138,7 @@ public class ImageDataAccessObject {
     private static JLabel getDefaultImage() {
         JLabel out;
         Path projRoot = getProjectRoot();
-        Path imageDir = projRoot.resolve(Paths.get("src", "main", "resources", "users"));
+        Path imageDir = projRoot.resolve(Paths.get("src", "main", "resources"));
         File imageFile = imageDir.resolve("default.jpg").toFile();
         try {
             BufferedImage image = ImageIO.read(imageFile);
