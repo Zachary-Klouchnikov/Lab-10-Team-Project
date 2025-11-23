@@ -8,6 +8,7 @@ import okhttp3.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import data_access.ImageDataAccessObject;
 
 // NOTE: All Steamapi calls are of the format: 
 // https://api.steampowered.com/<Interface>/<Method>/v<Version>/?key=<apikey>&<args>
@@ -22,6 +23,7 @@ public class UserDataAccessObject {
      *
      * @param steamid The Steam ID of the user
      * @return A User object with fetched data
+     * @throw A RuntimeException when the logged-in user's data cannot be instantiated.
      */
     public User get(long steamid) {
         // Friends
@@ -50,7 +52,9 @@ public class UserDataAccessObject {
             throw new RuntimeException(e + "[AT: Get]");
         }
 
-        return new User(steamid, username, friends, lib, avatar);
+        User out = new User(steamid, username, friends, lib, avatar);
+        ImageDataAccessObject.downloadImage(out);
+        return out;
     }
 
     private long[][] chunkIdList(List<Long> ids) {
@@ -118,7 +122,9 @@ public class UserDataAccessObject {
                     ArrayList<Game> lib = getUserLibrary(playerId, client);
 
                     // Friends don't get their own friendlist. 
-                    out.add(new User(playerId, player.getString("personaname"), null, lib, player.getString("avatarhash")));
+                    User user = new User(playerId, player.getString("personaname"), null, lib, player.getString("avatarhash"));
+                    ImageDataAccessObject.downloadImage(user);
+                    out.add(user);
                 }
             } catch (IOException | JSONException e) {
                 throw new RuntimeException(e + "[AT: UserData]");
@@ -136,7 +142,7 @@ public class UserDataAccessObject {
                 .build();
             final Response response = client.newCall(request).execute();
             final JSONObject responseBody = new JSONObject(response.body().string());
-            
+
             // The response will ALWAYS return with a "response" object
             if (responseBody.getJSONObject("response").isEmpty()) {
                 // Let it fall through and handle it at display time.
@@ -148,6 +154,7 @@ public class UserDataAccessObject {
                 JSONObject game = library.getJSONObject(i);
                 int recent = game.has("playtime_2weeks") ? game.getInt("playtime_2weeks") : 0;
                 Game g = new Game(game.getLong("appid"), game.getString("name"), game.getInt("playtime_forever"), game.getString("img_icon_url"), recent);
+                ImageDataAccessObject.downloadImage(g);
                 out.add(g);
             }
 

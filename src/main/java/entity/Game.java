@@ -1,6 +1,7 @@
 package entity;
 import java.util.List;
-
+import data_access.ImageDataAccessObject;
+import javax.swing.JLabel;
 
 public class Game {
     private final long appid;
@@ -35,8 +36,12 @@ public class Game {
     }
 
     // This should return a string, when fed into an ImageDataAccessObject, actually returns an image.
-    public String getThumbnail() {
+    public String getImageHash() {
         return this.thumbnail;
+    }
+
+    public JLabel getImage() {
+        return ImageDataAccessObject.getImage(this);
     }
 
     @Override

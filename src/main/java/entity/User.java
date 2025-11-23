@@ -2,6 +2,8 @@ package entity;
 
 import java.util.List;
 import java.util.ArrayList;
+import data_access.ImageDataAccessObject;
+import javax.swing.JLabel;
 
 public class User {
     private final long steamid;
@@ -46,9 +48,12 @@ public class User {
         return this.recentGames;
     }
 
-    // NOTE: Pass this as an argument to an image loader.
-    public String getProfilePicture() {
+    public String getImageHash() {
         return this.profilePicture;
+    }
+    
+    public JLabel getImage() {
+        return ImageDataAccessObject.getImage(this);
     }
 
     // Convinient string representation for debug purposes.
