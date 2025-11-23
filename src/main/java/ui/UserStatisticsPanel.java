@@ -132,7 +132,7 @@ public class UserStatisticsPanel extends JPanel {
         panel.setBackground(new Color(42, 42, 42));
         panel.setBorder(BorderFactory.createCompoundBorder(padding, outline));
 
-        JLabel title = new JLabel("FRIENDS : " + Integer.toString(friends.size()), SwingConstants.CENTER);
+        JLabel title = new JLabel("TOTAL FRIENDS : " + Integer.toString(friends.size()), SwingConstants.CENTER);
         title.setFont(title.getFont().deriveFont(Font.BOLD));
         title.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         title.setForeground(Color.WHITE);
@@ -181,7 +181,7 @@ public class UserStatisticsPanel extends JPanel {
         panel.setBackground(new Color(42, 42, 42));
         panel.setBorder(BorderFactory.createCompoundBorder(padding, outline));
 
-        JLabel title = new JLabel("games : " + Integer.toString(games.size()), SwingConstants.CENTER);
+        JLabel title = new JLabel("TOTAL GAMES : " + Integer.toString(games.size()), SwingConstants.CENTER);
         title.setFont(title.getFont().deriveFont(Font.BOLD));
         title.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         title.setForeground(Color.WHITE);
@@ -192,7 +192,7 @@ public class UserStatisticsPanel extends JPanel {
         content.setBackground(new Color(42, 42, 42));
 
         for (Game game : sorted) {
-            JLabel nameLabel = new JLabel(game.getTitle() + " : " + String.valueOf(game.getPlaytime() / 60));
+            JLabel nameLabel = new JLabel(game.getTitle() + " : " + (game.getPlaytime() / 60) + " hrs");
             nameLabel.setForeground(Color.WHITE);
             content.add(nameLabel);
         }
