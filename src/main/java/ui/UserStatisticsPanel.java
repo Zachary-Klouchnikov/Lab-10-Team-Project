@@ -6,36 +6,32 @@ import entity.User;
 import entity.Game;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.plaf.basic.BasicScrollBarUI;
 
 
 // TODO : Java throws error when trying to use org.free.chart.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PiePlot;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.ui.RectangleAnchor;
-import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.data.statistics.HistogramDataset;
 
 import java.awt.*;
 import java.util.List;
 
 public class UserStatisticsPanel extends JPanel {
     private final User user;
+    private final Color bgColor;
 
     public UserStatisticsPanel(User user) {
+        this.bgColor = new Color(42, 42, 42);
+
         this.user = user;
         initUI();
     }
 
     private void initUI() {
-        setBackground(new Color(42, 42, 42));
+
+        setBackground(bgColor);
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
@@ -56,8 +52,9 @@ public class UserStatisticsPanel extends JPanel {
 
         add(headerPanel, BorderLayout.NORTH);
 
-        JPanel statsPanel = new JPanel(new GridLayout(5, 1, 12, 12));
+        JPanel statsPanel = new JPanel();
         statsPanel.setOpaque(false);
+        statsPanel.setLayout(new BoxLayout(statsPanel, BoxLayout.Y_AXIS));
 
         int totalPlaytime = 0;
         for (Game game : user.getLibrary()){
@@ -65,12 +62,16 @@ public class UserStatisticsPanel extends JPanel {
         }
         totalPlaytime = totalPlaytime / 60;
 
+        statsPanel.add(createTotalPlaytimePanel(totalPlaytime));
+
+        statsPanel.add(createMostPlayedPanel(user.getLibrary(), totalPlaytime));
+
         statsPanel.add(createMostPlayedPanel(user.getLibrary(), totalPlaytime));
 
         add(statsPanel, BorderLayout.CENTER);
 
         JLabel footerLabel = new JLabel("Detailed stats coming soon…");
-        footerLabel.setForeground(Color.GRAY);
+        footerLabel.setForeground(bgColor);
         footerLabel.setFont(footerLabel.getFont().deriveFont(Font.ITALIC, 11f));
 
         JPanel footerPanel = new JPanel(new BorderLayout());
@@ -78,6 +79,72 @@ public class UserStatisticsPanel extends JPanel {
         footerPanel.add(footerLabel, BorderLayout.WEST);
 
         add(footerPanel, BorderLayout.SOUTH);
+    }
+
+    private JPanel createTotalPlaytimePanel(int totalPlaytime) {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(80, 80, 80)),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+
+        JLabel title = new JLabel("TOTAL PLAYTIME", SwingConstants.CENTER);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        title.setForeground(Color.WHITE);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        panel.add(title);
+        panel.add(Box.createVerticalStrut(10));
+
+        if (totalPlaytime <= 0) {
+            JLabel none = new JLabel("No Data");
+            none.setAlignmentX(Component.CENTER_ALIGNMENT);
+            none.setForeground(bgColor);
+            panel.add(none);
+            return panel;
+        }
+
+        JLabel hoursLabel = new JLabel(totalPlaytime + " hrs", SwingConstants.CENTER);
+        hoursLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        hoursLabel.setForeground(Color.LIGHT_GRAY);
+        hoursLabel.setFont(hoursLabel.getFont().deriveFont(Font.BOLD, 28f));
+
+        // --- Fix: Restrict label height so it cannot expand ---
+
+        Dimension fixedSize = new Dimension(Integer.MAX_VALUE, hoursLabel.getPreferredSize().height);
+        hoursLabel.setMaximumSize(fixedSize);
+        hoursLabel.setMinimumSize(hoursLabel.getPreferredSize());
+        hoursLabel.setPreferredSize(hoursLabel.getPreferredSize());
+
+        panel.add(hoursLabel);
+
+        panel.add(Box.createVerticalStrut(12));
+
+        // Message logic
+        String message;
+        if (totalPlaytime < 10) {
+            message = "New account?";
+        } else if (totalPlaytime < 100) {
+            message = "Getting into gaming...";
+        } else if (totalPlaytime < 500) {
+            message = "Gaming as a hobby.";
+        } else {
+            message = "We have a true Gamer in our midst...";
+        }
+
+        JLabel footer = new JLabel(message, SwingConstants.CENTER);
+        footer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        footer.setForeground(bgColor);
+        footer.setFont(footer.getFont().deriveFont(Font.ITALIC, 11f));
+
+        // Also prevent the footer from stretching vertically
+        Dimension footerSize = new Dimension(Integer.MAX_VALUE, footer.getPreferredSize().height);
+        footer.setMaximumSize(footerSize);
+
+        panel.add(footer);
+
+        return panel;
     }
 
     private JPanel createMostPlayedPanel(List<Game> games, int totalPlaytime) {
@@ -99,7 +166,7 @@ public class UserStatisticsPanel extends JPanel {
         if (games == null || games.isEmpty()) {
             JLabel none = new JLabel("No Data");
             none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(Color.GRAY);
+            none.setForeground(bgColor);
             panel.add(none);
             return panel;
         }
@@ -112,7 +179,7 @@ public class UserStatisticsPanel extends JPanel {
         if (mostPlayed == null) {
             JLabel none = new JLabel("No Data");
             none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(Color.GRAY);
+            none.setForeground(bgColor);
             panel.add(none);
             return panel;
         }
@@ -128,12 +195,12 @@ public class UserStatisticsPanel extends JPanel {
 
         JLabel playtime = new JLabel(hours + "hrs", SwingConstants.CENTER);
         playtime.setAlignmentX(Component.CENTER_ALIGNMENT);
-        playtime.setForeground(Color.GRAY);
+        playtime.setForeground(bgColor);
         playtime.setFont(playtime.getFont().deriveFont(Font.PLAIN, 13f));
         panel.add(playtime);
         panel.add(Box.createVerticalStrut(10));
 
-        panel.add(wrapChart(createChartPanel(hours, totalPlaytime, mostPlayed.getTitle())));
+        panel.add(wrapChart(createMostPlayedChart(hours, totalPlaytime, mostPlayed.getTitle())));
 
         String message;
         if (hours < 3) {
@@ -148,7 +215,7 @@ public class UserStatisticsPanel extends JPanel {
 
         JLabel footer = new JLabel(message, SwingConstants.CENTER);
         footer.setAlignmentX(Component.CENTER_ALIGNMENT);
-        footer.setForeground(Color.GRAY);
+        footer.setForeground(bgColor);
         footer.setFont(footer.getFont().deriveFont(Font.ITALIC, 11f));
         panel.add(footer);
 
@@ -163,31 +230,26 @@ public class UserStatisticsPanel extends JPanel {
         return wrapper;
     }
 
-    private ChartPanel createChartPanel(int small, int big, String label) {
+    private ChartPanel createMostPlayedChart(int small, int big, String label) {
 
-        // Build dataset
         DefaultPieDataset dataset = new DefaultPieDataset();
-        dataset.setValue(label, small);   // Only this slice is labeled
-        dataset.setValue("", big);        // Unlabeled slice
+        dataset.setValue(label, small);
+        dataset.setValue("other games", big);
 
-        // Create chart
         JFreeChart chart = ChartFactory.createPieChart(
-                "Small vs Big",
+                label + " as a proportion of total playtime",
                 dataset,
-                false,     // no legend since one label is blank
+                false,
                 true,
                 false
         );
 
-        // Backgrounds
-        chart.setBackgroundPaint(java.awt.Color.GRAY);
+        chart.setBackgroundPaint(bgColor);
         PiePlot plot = (PiePlot) chart.getPlot();
-        plot.setBackgroundPaint(java.awt.Color.GRAY);
+        plot.setBackgroundPaint(bgColor);
 
-        // Remove outline for cleaner look
         plot.setOutlineVisible(false);
 
-        // ChartPanel (auto-resize settings)
         ChartPanel panel = new ChartPanel(chart);
 
         panel.setPreferredSize(null);
