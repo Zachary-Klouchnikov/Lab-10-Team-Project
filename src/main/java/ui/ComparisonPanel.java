@@ -11,7 +11,6 @@ public class ComparisonPanel extends JPanel {
 
     private final JPanel leftPanel;
 
-    // Right panel fields
     private JPanel rightContainer;
     private JComboBox<User> friendCombo;
 
@@ -20,15 +19,12 @@ public class ComparisonPanel extends JPanel {
 
         setLayout(new BorderLayout());
 
-        // ---------- LEFT PANEL ----------
         leftPanel = new UserStatisticsPanel(this.user);
         JScrollPane leftScroll = createScrollPane(leftPanel);
 
-        // ---------- RIGHT PANEL (empty with centered dropdown) ----------
-        rightContainer = new JPanel(new GridBagLayout()); // centers content
+        rightContainer = new JPanel(new GridBagLayout());
         rightContainer.setBackground(new Color(42, 42, 42));
 
-        // Centered dropdown
         friendCombo = new JComboBox<>(user.getFriends().toArray(new User[0]));
         friendCombo.setPreferredSize(new Dimension(200, 30));
         friendCombo.addActionListener(e -> loadFriendPanel());
@@ -41,10 +37,8 @@ public class ComparisonPanel extends JPanel {
 
         JScrollPane rightScroll = createScrollPane(rightContainer);
 
-        // Sync scrollbars
         syncScrollBars(leftScroll, rightScroll);
 
-        // ---------- SPLIT PANE ----------
         JSplitPane splitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 leftScroll,
@@ -81,16 +75,13 @@ public class ComparisonPanel extends JPanel {
         sp2.getVerticalScrollBar().setModel(model);
     }
 
-    // ---------- Replace right side completely when a friend is selected ----------
     private void loadFriendPanel() {
         User selected = (User) friendCombo.getSelectedItem();
         if (selected == null) return;
 
-        // Remove EVERYTHING including the dropdown
         rightContainer.removeAll();
         rightContainer.setLayout(new BorderLayout());
 
-        // Add ONLY the statistics panel
         JPanel statsPanel = new UserStatisticsPanel(selected);
         rightContainer.add(statsPanel, BorderLayout.CENTER);
 

@@ -122,8 +122,6 @@ public class UserStatisticsPanel extends JPanel {
         hoursLabel.setForeground(Color.LIGHT_GRAY);
         hoursLabel.setFont(hoursLabel.getFont().deriveFont(Font.BOLD, 28f));
 
-        // --- Fix: Restrict label height so it cannot expand ---
-
         Dimension fixedSize = new Dimension(Integer.MAX_VALUE, hoursLabel.getPreferredSize().height);
         hoursLabel.setMaximumSize(fixedSize);
         hoursLabel.setMinimumSize(hoursLabel.getPreferredSize());
@@ -133,7 +131,6 @@ public class UserStatisticsPanel extends JPanel {
 
         panel.add(Box.createVerticalStrut(12));
 
-        // Message logic
         String message;
         if (totalPlaytime < 10) {
             message = "New account?";
@@ -258,7 +255,6 @@ public class UserStatisticsPanel extends JPanel {
             return panel;
         }
 
-        // ---- Count distribution ----
         int[] counts = new int[5];
         for (Game g : games) {
             int hours = g.getPlaytime() / 60;
@@ -267,7 +263,6 @@ public class UserStatisticsPanel extends JPanel {
 
         int total = games.size();
 
-        // ---- Horizontal bar ----
         JPanel bar = new JPanel();
         bar.setLayout(new BoxLayout(bar, BoxLayout.X_AXIS));
         bar.setOpaque(false);
@@ -294,7 +289,6 @@ public class UserStatisticsPanel extends JPanel {
         panel.add(bar);
         panel.add(Box.createVerticalStrut(10));
 
-        // ---- Legend ----
         JPanel legend = new JPanel(new GridLayout(1, 5, 8, 0));
         legend.setOpaque(false);
 
@@ -307,7 +301,6 @@ public class UserStatisticsPanel extends JPanel {
         panel.add(legend);
         panel.add(Box.createVerticalStrut(10));
 
-        // ---- Footer message ----
         JLabel footer = new JLabel(getFooterMessage(counts), SwingConstants.CENTER);
         footer.setAlignmentX(Component.CENTER_ALIGNMENT);
         footer.setForeground(Color.LIGHT_GRAY);
@@ -366,7 +359,7 @@ public class UserStatisticsPanel extends JPanel {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(false);
         wrapper.add(chartPanel, BorderLayout.CENTER);
-        wrapper.setPreferredSize(new Dimension(200, 200)); // <-- height control
+        wrapper.setPreferredSize(new Dimension(200, 200));
         return wrapper;
     }
 
@@ -395,28 +388,25 @@ public class UserStatisticsPanel extends JPanel {
             return panel;
         }
 
-        // ----- Top 5 games -----
         List<Game> top = games.stream()
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparingInt(Game::getPlaytime).reversed())
                 .limit(5)
                 .toList();
 
-        // ----- Dataset -----
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         for (Game g : top) {
             int hours = g.getPlaytime() / 60;
             dataset.addValue(hours, "Playtime (hrs)", g.getTitle());
         }
 
-        // ----- Chart -----
         JFreeChart chart = ChartFactory.createBarChart(
-                null,                 // no title inside chart; card title is enough
-                "Game",               // X axis label
-                "Hours",              // Y axis label
+                null,
+                "Game",
+                "Hours",
                 dataset,
                 PlotOrientation.VERTICAL,
-                false,                // no legend
+                false,
                 true,
                 false
         );
@@ -428,18 +418,15 @@ public class UserStatisticsPanel extends JPanel {
         plot.setOutlineVisible(false);
         plot.setRangeGridlinePaint(Color.GRAY);
 
-        // ----- Bar colors & style -----
         BarRenderer renderer = (BarRenderer) plot.getRenderer();
         renderer.setBarPainter(new StandardBarPainter());
-        renderer.setSeriesPaint(0, new Color(80, 160, 220)); // matching your blue color
+        renderer.setSeriesPaint(0, new Color(80, 160, 220));
 
-        // Text colors
         plot.getDomainAxis().setTickLabelPaint(Color.LIGHT_GRAY);
         plot.getDomainAxis().setLabelPaint(Color.LIGHT_GRAY);
         plot.getRangeAxis().setTickLabelPaint(Color.LIGHT_GRAY);
         plot.getRangeAxis().setLabelPaint(Color.LIGHT_GRAY);
 
-        // ----- Chart panel -----
         ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(null);
         chartPanel.setMaximumDrawWidth(Integer.MAX_VALUE);
