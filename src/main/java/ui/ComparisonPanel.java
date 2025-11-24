@@ -14,7 +14,6 @@ public class ComparisonPanel extends JPanel {
 
     public ComparisonPanel(User user) {
 
-
         this.user = user;
 
         setLayout(new BorderLayout());
@@ -34,6 +33,7 @@ public class ComparisonPanel extends JPanel {
         );
         splitPane.setResizeWeight(0.5);
         splitPane.setDividerSize(5);
+        splitPane.setContinuousLayout(true);
 
         add(splitPane, BorderLayout.CENTER);
     }
@@ -42,13 +42,17 @@ public class ComparisonPanel extends JPanel {
         JScrollPane sp = new JScrollPane(panel);
 
         sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
         sp.getVerticalScrollBar().setUnitIncrement(20);
 
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         sp.setBorder(null);
         sp.getViewport().setBackground(new Color(42, 42, 42));
+
+        sp.setPreferredSize(null);
+        sp.setMinimumSize(new Dimension(0, 0));
+        
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
         return sp;
     }
