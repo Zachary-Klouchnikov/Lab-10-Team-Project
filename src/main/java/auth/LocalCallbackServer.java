@@ -16,7 +16,8 @@ import java.util.concurrent.Executors;
 
 /**
  * Local HTTP server that handles OAuth callbacks from Steam.
- * This server runs temporarily on localhost to receive the authentication response.
+ * This server runs temporarily on localhost to receive the authentication
+ * response.
  */
 public class LocalCallbackServer {
     private HttpServer server;
@@ -82,57 +83,57 @@ public class LocalCallbackServer {
         public void handle(HttpExchange exchange) throws IOException {
             try {
                 // Parse query parameters from the request
-                String query = exchange.getRequestURI().getQuery();
+                String query = exchange.getRequestURI().getRawQuery();
                 Map<String, String> params = parseQueryString(query);
 
                 // Send success response to browser
                 String response = """
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Steam Authentication</title>
-                        <style>
-                            body {
-                                font-family: Arial, sans-serif;
-                                display: flex;
-                                justify-content: center;
-                                align-items: center;
-                                height: 100vh;
-                                margin: 0;
-                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            }
-                            .container {
-                                text-align: center;
-                                background: white;
-                                padding: 40px;
-                                border-radius: 10px;
-                                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                            }
-                            h1 {
-                                color: #2c3e50;
-                                margin-bottom: 20px;
-                            }
-                            p {
-                                color: #7f8c8d;
-                                margin-bottom: 20px;
-                            }
-                            .checkmark {
-                                font-size: 48px;
-                                color: #27ae60;
-                                margin-bottom: 20px;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <div class="checkmark">✓</div>
-                            <h1>Authentication Successful!</h1>
-                            <p>You have been successfully authenticated with Steam.</p>
-                            <p>You can now close this window and return to the application.</p>
-                        </div>
-                    </body>
-                    </html>
-                    """;
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Steam Authentication</title>
+                            <style>
+                                body {
+                                    font-family: Arial, sans-serif;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    height: 100vh;
+                                    margin: 0;
+                                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                }
+                                .container {
+                                    text-align: center;
+                                    background: white;
+                                    padding: 40px;
+                                    border-radius: 10px;
+                                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                                }
+                                h1 {
+                                    color: #2c3e50;
+                                    margin-bottom: 20px;
+                                }
+                                p {
+                                    color: #7f8c8d;
+                                    margin-bottom: 20px;
+                                }
+                                .checkmark {
+                                    font-size: 48px;
+                                    color: #27ae60;
+                                    margin-bottom: 20px;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <div class="checkmark">✓</div>
+                                <h1>Authentication Successful!</h1>
+                                <p>You have been successfully authenticated with Steam.</p>
+                                <p>You can now close this window and return to the application.</p>
+                            </div>
+                        </body>
+                        </html>
+                        """;
 
                 byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
                 exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
