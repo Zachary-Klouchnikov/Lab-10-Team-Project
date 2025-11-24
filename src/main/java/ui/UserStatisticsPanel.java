@@ -14,6 +14,12 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.StandardBarPainter;
+
 
 import java.awt.*;
 import java.util.List;
@@ -71,6 +77,8 @@ public class UserStatisticsPanel extends JPanel {
         statsPanel.add(createMostPlayedPanel(user.getLibrary(), totalPlaytime));
 
         statsPanel.add(createHeatmapAllGamesPanel(user.getLibrary()));
+
+        statsPanel.add(createTopFiveGamesPanel(user.getLibrary()));
 
         add(statsPanel, BorderLayout.CENTER);
 
@@ -347,11 +355,11 @@ public class UserStatisticsPanel extends JPanel {
         float orangePct = c[1] / (float) total;
         float bluePct = c[4] / (float) total;
 
-        if (redPct > 0.4f) return "Most games barely touched.";
-        if (orangePct > 0.4f) return "Lots of games tested briefly.";
-        if (bluePct > 0.4f) return "A few games dominate your time.";
+        if (redPct > 0.4f) return "Building quite a big backlog...";
+        if (orangePct > 0.4f) return "One playthrough per game?";
+        if (bluePct > 0.4f) return "You know what you like";
 
-        return "A balanced mix of playtimes.";
+        return "About what I expected";
     }
 
     private JPanel wrapChart(ChartPanel chartPanel) {
@@ -360,6 +368,99 @@ public class UserStatisticsPanel extends JPanel {
         wrapper.add(chartPanel, BorderLayout.CENTER);
         wrapper.setPreferredSize(new Dimension(200, 200)); // <-- height control
         return wrapper;
+    }
+
+    private JPanel createTopFiveGamesPanel(List<Game> games) {
+
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(80, 80, 80)),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+
+        JLabel title = new JLabel("TOP 5 GAMES BY PLAYTIME", SwingConstants.CENTER);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        title.setForeground(Color.WHITE);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        panel.add(title);
+        panel.add(Box.createVerticalStrut(10));
+
+        if (games == null || games.isEmpty()) {
+            JLabel none = new JLabel("No Data");
+            none.setAlignmentX(Component.CENTER_ALIGNMENT);
+            none.setForeground(Color.LIGHT_GRAY);
+            panel.add(none);
+            return panel;
+        }
+
+        // ----- Top 5 games -----
+        List<Game> top = games.stream()
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparingInt(Game::getPlaytime).reversed())
+                .limit(5)
+                .toList();
+
+        // ----- Dataset -----
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        for (Game g : top) {
+            int hours = g.getPlaytime() / 60;
+            dataset.addValue(hours, "Playtime (hrs)", g.getTitle());
+        }
+
+        // ----- Chart -----
+        JFreeChart chart = ChartFactory.createBarChart(
+                null,                 // no title inside chart; card title is enough
+                "Game",               // X axis label
+                "Hours",              // Y axis label
+                dataset,
+                PlotOrientation.VERTICAL,
+                false,                // no legend
+                true,
+                false
+        );
+
+        chart.setBackgroundPaint(bgColor);
+        chart.getPlot().setBackgroundPaint(bgColor);
+
+        CategoryPlot plot = chart.getCategoryPlot();
+        plot.setOutlineVisible(false);
+        plot.setRangeGridlinePaint(Color.GRAY);
+
+        // ----- Bar colors & style -----
+        BarRenderer renderer = (BarRenderer) plot.getRenderer();
+        renderer.setBarPainter(new StandardBarPainter());
+        renderer.setSeriesPaint(0, new Color(80, 160, 220)); // matching your blue color
+
+        // Text colors
+        plot.getDomainAxis().setTickLabelPaint(Color.LIGHT_GRAY);
+        plot.getDomainAxis().setLabelPaint(Color.LIGHT_GRAY);
+        plot.getRangeAxis().setTickLabelPaint(Color.LIGHT_GRAY);
+        plot.getRangeAxis().setLabelPaint(Color.LIGHT_GRAY);
+
+        // ----- Chart panel -----
+        ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setPreferredSize(null);
+        chartPanel.setMaximumDrawWidth(Integer.MAX_VALUE);
+        chartPanel.setMaximumDrawHeight(Integer.MAX_VALUE);
+        chartPanel.setMinimumDrawWidth(0);
+        chartPanel.setMinimumDrawHeight(0);
+        chartPanel.setMouseWheelEnabled(true);
+
+        JPanel wrapped = wrapChart(chartPanel);
+        wrapped.setPreferredSize(new Dimension(300, 240));
+
+        panel.add(wrapped);
+        panel.add(Box.createVerticalStrut(12));
+
+        JLabel footer = new JLabel("Your most played games.", SwingConstants.CENTER);
+        footer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        footer.setForeground(Color.LIGHT_GRAY);
+        footer.setFont(footer.getFont().deriveFont(Font.ITALIC, 11f));
+        panel.add(footer);
+
+        return panel;
     }
 
     private ChartPanel createMostPlayedChart(int small, int big, String label) {
