@@ -1,6 +1,6 @@
 package view;
 
-import use_case.auth.SessionManager;
+import entity.SessionManager;
 import entity.User;
 import entity.Game;
 
