@@ -1,7 +1,7 @@
-package ui;
+package view;
 
-import auth.SessionManager;
-import auth.SteamAuthService;
+import entity.SessionManager;
+import data_access.AuthDataAccessObject;
 import data_access.UserDataAccessObject;
 import entity.User;
 
@@ -17,7 +17,7 @@ public class LoginPanel extends JPanel {
     private JButton loginButton;
     private JLabel statusLabel;
     private JProgressBar progressBar;
-    private SteamAuthService authService;
+    private AuthDataAccessObject authService;
     private UserDataAccessObject userDAO;
     private LoginCallback callback;
 
@@ -36,7 +36,7 @@ public class LoginPanel extends JPanel {
      */
     public LoginPanel(LoginCallback callback) {
         this.callback = callback;
-        this.authService = new SteamAuthService();
+        this.authService = new AuthDataAccessObject();
         this.userDAO = new UserDataAccessObject();
 
         initializeUI();
