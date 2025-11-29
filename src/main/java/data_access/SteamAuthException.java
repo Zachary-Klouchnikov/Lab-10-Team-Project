@@ -1,6 +1,7 @@
-package auth;
+package data_access;
 
 /**
+v
  * Custom exception for Steam authentication errors.
  */
 public class SteamAuthException extends Exception {

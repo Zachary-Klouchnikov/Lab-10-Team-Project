@@ -1,10 +1,10 @@
 package app;
 
-import auth.SessionManager;
+import entity.SessionManager;
 import data_access.UserDataAccessObject;
 import entity.User;
-import ui.LoginPanel;
-import ui.ComparisonPanel;
+import view.LoginPanel;
+import view.ComparisonPanel;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,7 +1,6 @@
-package auth;
+package entity;
 
 import entity.User;
-
 import java.time.Instant;
 import java.time.Duration;
 import java.util.Optional;

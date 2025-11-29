@@ -1,7 +1,7 @@
-package auth;
+package data_access;
 
+import use_case.auth.AuthDataAccessInterface;
 import okhttp3.*;
-
 import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  * Service for authenticating users with Steam using OpenID 2.0.
  * This class orchestrates the entire authentication flow.
  */
-public class SteamAuthService {
+public class AuthDataAccessObject implements AuthDataAccessInterface {
     private static final String STEAM_OPENID_URL = "https://steamcommunity.com/openid/login";
     private static final Pattern STEAM_ID_PATTERN = Pattern.compile("https://steamcommunity\\.com/openid/id/(\\d+)");
 
@@ -30,7 +30,7 @@ public class SteamAuthService {
     /**
      * Creates a new SteamAuthService with default callback port 8080.
      */
-    public SteamAuthService() {
+    public AuthDataAccessObject() {
         this(8080);
     }
 
@@ -39,7 +39,7 @@ public class SteamAuthService {
      *
      * @param callbackPort The port for the callback server
      */
-    public SteamAuthService(int callbackPort) {
+    public AuthDataAccessObject(int callbackPort) {
         this.callbackPort = callbackPort;
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
@@ -53,6 +53,7 @@ public class SteamAuthService {
      * @return A CompletableFuture containing the authenticated Steam ID
      * @throws SteamAuthException if authentication fails
      */
+    @Override
     public CompletableFuture<Long> authenticate() throws SteamAuthException {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -264,6 +265,7 @@ public class SteamAuthService {
     /**
      * Closes the HTTP client and releases resources.
      */
+    @Override
     public void close() {
         httpClient.dispatcher().executorService().shutdown();
         httpClient.connectionPool().evictAll();
