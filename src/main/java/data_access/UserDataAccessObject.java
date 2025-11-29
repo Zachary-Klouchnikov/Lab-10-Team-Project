@@ -2,6 +2,8 @@ package data_access;
 
 import entity.User;
 import entity.Game;
+
+import java.nio.file.Path;
 import java.util.*;
 import java.io.IOException;
 import okhttp3.*;
@@ -31,6 +33,8 @@ public class UserDataAccessObject {
         List<User> friends = getUserData(ids, client);
         //Games
         ArrayList<Game> lib = getUserLibrary(steamid, client);
+        //Library Paths
+        List<Path> libPaths = new LibraryDataAccessObject().loadLibraryFolders();
 
         String username = "";
         String avatar = "";
@@ -52,7 +56,7 @@ public class UserDataAccessObject {
             throw new RuntimeException(e + "[AT: Get]");
         }
 
-        User out = new User(steamid, username, friends, lib, avatar);
+        User out = new User(steamid, username, friends, lib, avatar, libPaths);
         ImageDataAccessObject.downloadImage(out);
         return out;
     }
@@ -120,9 +124,10 @@ public class UserDataAccessObject {
                     JSONObject player = playerList.getJSONObject(idx);
                     long playerId = Long.parseLong(player.getString("steamid"));
                     ArrayList<Game> lib = getUserLibrary(playerId, client);
+                    List<Path> libPaths = new LibraryDataAccessObject().loadLibraryFolders();
 
                     // Friends don't get their own friendlist. 
-                    User user = new User(playerId, player.getString("personaname"), null, lib, player.getString("avatarhash"));
+                    User user = new User(playerId, player.getString("personaname"), null, lib, player.getString("avatarhash"), libPaths);
                     ImageDataAccessObject.downloadImage(user);
                     out.add(user);
                 }

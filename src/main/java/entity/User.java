@@ -1,8 +1,11 @@
 package entity;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
+
 import data_access.ImageDataAccessObject;
+
 import javax.swing.JLabel;
 
 public class User {
@@ -12,14 +15,15 @@ public class User {
     private final List<Game> library;
     private final List<Game> recentGames;
     private final String profilePicture;
+    private final List<Path> libraryPaths;
 
-    public User(long id, String name, List<User> friends, List<Game> games, String profile) {
+    public User(long id, String name, List<User> friends, List<Game> games, String profile, List<Path> libraryPaths) {
         this.steamid = id;
         this.username = name;
         this.friends = friends;
         this.library = games;
+        this.libraryPaths = libraryPaths;
         this.profilePicture = profile;
-
 
         this.recentGames = new ArrayList<>();
         for (int i = 0; i < games.size(); ++i) {
@@ -42,6 +46,10 @@ public class User {
 
     public List<Game> getLibrary() {
         return this.library;
+    }
+
+    public List<Path> getLibraryPaths() {
+        return this.libraryPaths;
     }
 
     public List<Game> getRecentGames() {
