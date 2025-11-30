@@ -93,6 +93,8 @@ public class UserStatisticsPanel extends JPanel {
 
         statsPanel.add(createTopFiveGamesPanel(user.getLibrary()));
 
+        statsPanel.add(createRecentlyPlayedPanel(user.getLibrary()));
+
         add(statsPanel, BorderLayout.CENTER);
 
         JLabel footerLabel = new JLabel("Detailed stats coming soon…");
@@ -493,6 +495,80 @@ public class UserStatisticsPanel extends JPanel {
         panel.setMinimumDrawWidth(0);
         panel.setMinimumDrawHeight(0);
         panel.setMouseWheelEnabled(true);
+
+        return panel;
+    }
+
+    private JPanel createRecentlyPlayedPanel(List<Game> games){
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(80, 80, 80)),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+
+        JLabel title = new JLabel("RECENTLY PLAYED", SwingConstants.CENTER);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        title.setForeground(Color.WHITE);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        panel.add(title);
+        panel.add(Box.createVerticalStrut(10));
+
+        if (games == null || games.isEmpty()) {
+            JLabel none = new JLabel("No Data");
+            none.setAlignmentX(Component.CENTER_ALIGNMENT);
+            none.setForeground(Color.LIGHT_GRAY);
+            panel.add(none);
+            return panel;
+        }
+
+
+        Game recentlyPlayed = games.getFirst();
+        for (Game g : games) {
+            if (g.getRecentPlaytime() > recentlyPlayed.getRecentPlaytime()){
+                recentlyPlayed = g;
+            }
+        }
+
+        JLabel gameName = new JLabel(recentlyPlayed.getTitle(), SwingConstants.CENTER);
+        gameName.setAlignmentX(Component.CENTER_ALIGNMENT);
+        gameName.setForeground(Color.LIGHT_GRAY);
+        gameName.setFont(gameName.getFont().deriveFont(Font.BOLD, 18f));
+        panel.add(gameName);
+        panel.add(Box.createVerticalStrut(6));
+
+        int hours = recentlyPlayed.getRecentPlaytime() / 60;
+
+        JLabel playtime = new JLabel(hours + " hrs", SwingConstants.CENTER);
+        playtime.setAlignmentX(Component.CENTER_ALIGNMENT);
+        playtime.setForeground(Color.WHITE);
+        playtime.setFont(playtime.getFont().deriveFont(Font.PLAIN, 13f));
+        panel.add(playtime);
+        panel.add(Box.createVerticalStrut(10));
+
+        String message;
+        if (hours < 2){
+            message = "Just downloaded, huh?";
+        } else if (hours < 5) {
+            message = "Barely past the tutorial.";
+        } else if (hours < 15) {
+            message = "Story's getting good?";
+        } else if (hours < 60) {
+            message = "Finished the main story?";
+        } else {
+            message = "Do we have a trophy hunter?";
+        }
+
+        JLabel footer = new JLabel(message, SwingConstants.CENTER);
+        footer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        footer.setForeground(textColor);
+        footer.setFont(footer.getFont().deriveFont(Font.ITALIC, 11f));
+
+        Dimension footerSize = new Dimension(Integer.MAX_VALUE, footer.getPreferredSize().height);
+        footer.setMaximumSize(footerSize);
+
+        panel.add(footer);
 
         return panel;
     }
