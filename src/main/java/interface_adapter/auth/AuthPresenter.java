@@ -18,8 +18,8 @@ public class AuthPresenter implements AuthOutputBoundary {
     public void prepareSuccessView(AuthOutputData outputData) {
         User user = outputData.getUser();
 
-        // Pass user object into otherView's state or smth.
-        // this.viewManagerModel.setState(); <-- Change to some other View.
+        // Pass the user object into the info panels.
+        // this.viewManagerModel.setState(); <-- Change to info panels.
         this.viewManagerModel.firePropertyChange();
     }
 
