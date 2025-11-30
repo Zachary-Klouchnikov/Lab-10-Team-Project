@@ -165,4 +165,39 @@ public class UserDataAccessObject {
         }
         return out;
     }
+    public ArrayList<String> ReviewDisplay(long friendId, OkHttpClient client) {
+        ArrayList<String> out = new ArrayList<>();
+        ArrayList<Game> lib = getUserLibrary(friendId, client);
+        String cursor = "*";
+        for  (int i = 0; i < lib.size(); ++i) {
+            try {
+                int flag = 0;
+                do {
+                    Request request = new Request.Builder()
+                            .url("https://store.steampowered.com/appreviews/" + lib.get(i).getId() + "?json=1&cursor={" + cursor + "}")
+                            .build();
+                    Response response = client.newCall(request).execute();
+                    JSONObject responseBody = new JSONObject(response.body().string());
+                    if (responseBody.getInt("success") != 1)
+                        break;
+                    cursor = responseBody.getString("cursor");
+                    JSONArray reviews = responseBody.getJSONArray("reviews");
+                    for (int j = 0; j < reviews.length(); ++j) {
+                        if(Long.toString(friendId) == reviews.getJSONObject(j).getJSONObject("author").getString("steamid")){
+                            out.add(reviews.getJSONObject(j).getString("review"));
+                            flag = 1;
+                            break;
+                        }
+                    }
+                    if(flag == 1)
+                        break;
+                }while(true);
+            } catch (IOException | JSONException e) {
+                // Since a private account with no games can be handled, then we do the same if the call fails.
+                // NOTE: This is subject to change.
+                return new ArrayList<>();
+            }
+        }
+        return out;
+    }
 }
