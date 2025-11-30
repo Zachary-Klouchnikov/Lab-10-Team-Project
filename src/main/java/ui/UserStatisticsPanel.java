@@ -53,12 +53,25 @@ public class UserStatisticsPanel extends JPanel {
         idLabel.setForeground(Color.LIGHT_GRAY);
         idLabel.setFont(idLabel.getFont().deriveFont(Font.PLAIN, 12f));
 
-        JPanel headerPanel = new JPanel();
+        JLabel imgLabel = user.getImage();
+
+        ImageIcon icon = (ImageIcon) imgLabel.getIcon();
+        int targetHeight = nameLabel.getPreferredSize().height + idLabel.getPreferredSize().height + 4;
+        int targetWidth = icon.getIconWidth() * targetHeight / icon.getIconHeight();
+        Image scaled = icon.getImage().getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
+        imgLabel.setIcon(new ImageIcon(scaled));
+
+        JPanel textPanel = new JPanel();
+        textPanel.setOpaque(false);
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.add(nameLabel);
+        textPanel.add(Box.createVerticalStrut(4));
+        textPanel.add(idLabel);
+
+        JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
-        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
-        headerPanel.add(nameLabel);
-        headerPanel.add(Box.createVerticalStrut(4));
-        headerPanel.add(idLabel);
+        headerPanel.add(textPanel, BorderLayout.WEST);
+        headerPanel.add(imgLabel, BorderLayout.EAST);
 
         add(headerPanel, BorderLayout.NORTH);
 
@@ -201,9 +214,9 @@ public class UserStatisticsPanel extends JPanel {
 
         int hours = mostPlayed.getPlaytime() / 60;
 
-        JLabel playtime = new JLabel(hours + "hrs", SwingConstants.CENTER);
+        JLabel playtime = new JLabel(hours + " hrs", SwingConstants.CENTER);
         playtime.setAlignmentX(Component.CENTER_ALIGNMENT);
-        playtime.setForeground(bgColor);
+        playtime.setForeground(Color.WHITE);
         playtime.setFont(playtime.getFont().deriveFont(Font.PLAIN, 13f));
         panel.add(playtime);
         panel.add(Box.createVerticalStrut(10));
