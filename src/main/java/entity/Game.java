@@ -1,6 +1,6 @@
 package entity;
+
 import java.nio.file.Path;
-import java.util.List;
 import data_access.ImageDataAccessObject;
 import javax.swing.JLabel;
 

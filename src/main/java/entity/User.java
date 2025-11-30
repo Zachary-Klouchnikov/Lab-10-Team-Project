@@ -15,14 +15,12 @@ public class User {
     private final List<Game> library;
     private final List<Game> recentGames;
     private final String profilePicture;
-    private final List<Path> libraryPaths;
 
-    public User(long id, String name, List<User> friends, List<Game> games, String profile, List<Path> libraryPaths) {
+    public User(long id, String name, List<User> friends, List<Game> games, String profile) {
         this.steamid = id;
         this.username = name;
         this.friends = friends;
         this.library = games;
-        this.libraryPaths = libraryPaths;
         this.profilePicture = profile;
 
         this.recentGames = new ArrayList<>();
@@ -46,10 +44,6 @@ public class User {
 
     public List<Game> getLibrary() {
         return this.library;
-    }
-
-    public List<Path> getLibraryPaths() {
-        return this.libraryPaths;
     }
 
     public List<Game> getRecentGames() {
