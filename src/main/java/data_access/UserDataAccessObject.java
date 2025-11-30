@@ -183,7 +183,7 @@ public class UserDataAccessObject {
                     cursor = responseBody.getString("cursor");
                     JSONArray reviews = responseBody.getJSONArray("reviews");
                     for (int j = 0; j < reviews.length(); ++j) {
-                        if(Long.toString(friendId) == reviews.getJSONObject(j).getJSONObject("author").getString("steamid")){
+                        if(Long.toString(friendId).equals(reviews.getJSONObject(j).getJSONObject("author").getString("steamid"))){
                             out.add(reviews.getJSONObject(j).getString("review"));
                             flag = 1;
                             break;
