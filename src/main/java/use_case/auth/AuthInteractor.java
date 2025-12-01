@@ -52,8 +52,9 @@ public class AuthInteractor implements AuthInputBoundary {
             protected void done() {
                 try {
                     User user = get();
-                    status.setText("Login successful!");
+                    status.setText(" ");
                     bar.setVisible(false);
+                    button.setEnabled(true);
 
                     authOutputBoundary.prepareSuccessView(new AuthOutputData(user));
                 } catch (Exception e) {

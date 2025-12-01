@@ -15,7 +15,7 @@ import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 
-public class LoggedInView extends JPanel implements ActionListener, PropertyChangeListener{
+public class LoggedinView extends JPanel implements ActionListener, PropertyChangeListener{
     private final String viewName = "loggedin";
     private User user;
     private LoggedinViewModel loggedinViewModel;   
@@ -31,7 +31,7 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
     private LogoutController logoutController = null;
     private RefreshController refreshController = null;
 
-    public LoggedInView(LoggedinViewModel loggedinViewModel) {
+    public LoggedinView(LoggedinViewModel loggedinViewModel) {
         this.loggedinViewModel = loggedinViewModel;
         this.loggedinViewModel.addPropertyChangeListener(this);
 
@@ -71,7 +71,7 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
         gbc.anchor = GridBagConstraints.WEST;
 
         // Title
-        JLabel titleLabel = new JLabel("Steam Profile");
+        JLabel titleLabel = new JLabel("Hello, ");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setForeground(Color.WHITE);
         gbc.gridx = 0;
@@ -263,7 +263,7 @@ public class LoggedInView extends JPanel implements ActionListener, PropertyChan
         final LoggedinState state = (LoggedinState) evt.getNewValue();
         if (state.getUser() == null) {
             JOptionPane.showMessageDialog(
-                LoggedInView.this,
+                LoggedinView.this,
                 state.getError(),
                 "Error",
                 JOptionPane.ERROR_MESSAGE

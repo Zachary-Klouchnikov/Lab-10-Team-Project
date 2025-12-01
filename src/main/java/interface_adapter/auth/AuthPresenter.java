@@ -21,13 +21,13 @@ public class AuthPresenter implements AuthOutputBoundary {
     @Override
     public void prepareSuccessView(AuthOutputData outputData) {
         User user = outputData.getUser();
-        LoggedinState state = loggedinViewModel.getState();       
+        LoggedinState state = this.loggedinViewModel.getState();       
         state.setUser(user);
         state.setError("");
+        this.loggedinViewModel.firePropertyChange();
 
-        authViewModel.setState(new AuthState());
+        this.authViewModel.setState(new AuthState());
 
-        this.loggedinViewModel.setState(state);
         this.viewManagerModel.setState(loggedinViewModel.getViewName());
         this.viewManagerModel.firePropertyChange();
     }
