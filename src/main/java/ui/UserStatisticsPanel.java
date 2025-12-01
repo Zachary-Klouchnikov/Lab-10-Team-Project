@@ -95,6 +95,8 @@ public class UserStatisticsPanel extends JPanel {
 
         statsPanel.add(createRecentlyPlayedPanel(user.getLibrary()));
 
+        statsPanel.add(createTopFiveRecentGamesPanel(user.getLibrary()));
+
         add(statsPanel, BorderLayout.CENTER);
 
         JLabel footerLabel = new JLabel("Detailed stats coming soon…");
@@ -223,7 +225,7 @@ public class UserStatisticsPanel extends JPanel {
         panel.add(playtime);
         panel.add(Box.createVerticalStrut(10));
 
-        panel.add(wrapChart(createMostPlayedChart(hours, totalPlaytime, mostPlayed.getTitle())));
+        panel.add(wrapChart(createMostPlayedChart(hours, totalPlaytime - hours, mostPlayed.getTitle())));
 
         String message;
         if (hours < 3) {
@@ -568,6 +570,93 @@ public class UserStatisticsPanel extends JPanel {
         Dimension footerSize = new Dimension(Integer.MAX_VALUE, footer.getPreferredSize().height);
         footer.setMaximumSize(footerSize);
 
+        panel.add(footer);
+
+        return panel;
+    }
+
+    private JPanel createTopFiveRecentGamesPanel(List<Game> games) {
+
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(80, 80, 80)),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+
+        JLabel title = new JLabel("TOP 5 GAMES BY RECENT PLAYTIME", SwingConstants.CENTER);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        title.setForeground(Color.WHITE);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        panel.add(title);
+        panel.add(Box.createVerticalStrut(10));
+
+        if (games == null || games.isEmpty()) {
+            JLabel none = new JLabel("No Data");
+            none.setAlignmentX(Component.CENTER_ALIGNMENT);
+            none.setForeground(Color.LIGHT_GRAY);
+            panel.add(none);
+            return panel;
+        }
+
+        List<Game> top = games.stream()
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparingInt(Game::getRecentPlaytime).reversed())
+                .limit(5)
+                .toList();
+
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        for (Game g : top) {
+            int hours = g.getRecentPlaytime() / 60;
+            dataset.addValue(hours, "Playtime (hrs)", g.getTitle());
+        }
+
+        JFreeChart chart = ChartFactory.createBarChart(
+                null,
+                "Game",
+                "Hours",
+                dataset,
+                PlotOrientation.VERTICAL,
+                false,
+                true,
+                false
+        );
+
+        chart.setBackgroundPaint(bgColor);
+        chart.getPlot().setBackgroundPaint(bgColor);
+
+        CategoryPlot plot = chart.getCategoryPlot();
+        plot.setOutlineVisible(false);
+        plot.setRangeGridlinePaint(Color.GRAY);
+
+        BarRenderer renderer = (BarRenderer) plot.getRenderer();
+        renderer.setBarPainter(new StandardBarPainter());
+        renderer.setSeriesPaint(0, new Color(80, 160, 220));
+
+        plot.getDomainAxis().setTickLabelPaint(Color.LIGHT_GRAY);
+        plot.getDomainAxis().setLabelPaint(Color.LIGHT_GRAY);
+        plot.getRangeAxis().setTickLabelPaint(Color.LIGHT_GRAY);
+        plot.getRangeAxis().setLabelPaint(Color.LIGHT_GRAY);
+
+        ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setPreferredSize(null);
+        chartPanel.setMaximumDrawWidth(Integer.MAX_VALUE);
+        chartPanel.setMaximumDrawHeight(Integer.MAX_VALUE);
+        chartPanel.setMinimumDrawWidth(0);
+        chartPanel.setMinimumDrawHeight(0);
+        chartPanel.setMouseWheelEnabled(true);
+
+        JPanel wrapped = wrapChart(chartPanel);
+        wrapped.setPreferredSize(new Dimension(300, 240));
+
+        panel.add(wrapped);
+        panel.add(Box.createVerticalStrut(12));
+
+        JLabel footer = new JLabel("Your recently played games.", SwingConstants.CENTER);
+        footer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        footer.setForeground(Color.LIGHT_GRAY);
+        footer.setFont(footer.getFont().deriveFont(Font.ITALIC, 11f));
         panel.add(footer);
 
         return panel;
