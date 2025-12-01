@@ -4,8 +4,7 @@ import entity.User;
 
 public class LoggedinState {
     private User user = null;
-    // Only way for this to appear is if the authentication process is somehow skipped.
-    private String errorMessage = "Authentication process did not succeed."; 
+    private String errorMessage = ""; 
 
     public User getUser() {
         return this.user;
