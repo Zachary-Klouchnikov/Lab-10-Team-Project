@@ -159,9 +159,7 @@ public class ImageDataAccessObject {
                     .getCodeSource()
                     .getLocation()
                     .toURI()
-                    .getPath())
-                .getParent()
-                .getParent()
+                    .normalize())
                 .getParent()
                 .getParent();
         } catch (Exception e) {
