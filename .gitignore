@@ -37,7 +37,8 @@ build/
 ### Mac OS ###
 .DS_Store
 
-.envrc
-### DO NOT STORE IMAGES ###
-src/main/resources/games/*
-src/main/resources/users/*
+### Application ###
+/src/main/resources/games/*
+!/src/main/resources/games/.gitkeep
+/src/main/resources/users/*
+!/src/main/resources/users/.gitkeep
