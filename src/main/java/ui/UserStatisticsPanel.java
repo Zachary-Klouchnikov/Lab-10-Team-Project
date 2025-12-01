@@ -224,12 +224,20 @@ public class UserStatisticsPanel extends JPanel {
             return panel;
         }
 
+        JPanel contentRow = new JPanel();
+        contentRow.setOpaque(false);
+        contentRow.setLayout(new BoxLayout(contentRow, BoxLayout.X_AXIS));
+
+        JPanel leftContent = new JPanel();
+        leftContent.setOpaque(false);
+        leftContent.setLayout(new BoxLayout(leftContent, BoxLayout.Y_AXIS));
+
         JLabel gameName = new JLabel(mostPlayed.getTitle(), SwingConstants.CENTER);
         gameName.setAlignmentX(Component.CENTER_ALIGNMENT);
         gameName.setForeground(Color.LIGHT_GRAY);
         gameName.setFont(gameName.getFont().deriveFont(Font.BOLD, 18f));
-        panel.add(gameName);
-        panel.add(Box.createVerticalStrut(6));
+        leftContent.add(gameName);
+        leftContent.add(Box.createVerticalStrut(6));
 
         int hours = mostPlayed.getPlaytime() / 60;
 
@@ -237,9 +245,13 @@ public class UserStatisticsPanel extends JPanel {
         playtime.setAlignmentX(Component.CENTER_ALIGNMENT);
         playtime.setForeground(Color.WHITE);
         playtime.setFont(playtime.getFont().deriveFont(Font.PLAIN, 13f));
-        panel.add(playtime);
-        panel.add(Box.createVerticalStrut(10));
+        leftContent.add(playtime);
+        leftContent.add(Box.createVerticalStrut(10));
 
+        contentRow.add(leftContent, BorderLayout.WEST);
+        contentRow.add(mostPlayed.getImage(), BorderLayout.EAST);
+
+        panel.add(contentRow);
         panel.add(wrapChart(createMostPlayedChart(hours, totalPlaytime - hours, mostPlayed.getTitle())));
 
         String message;
