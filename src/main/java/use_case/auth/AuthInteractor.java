@@ -75,5 +75,7 @@ public class AuthInteractor implements AuthInputBoundary {
             }
         };
         worker.execute();
+
+        authDataAccessInterface.close();
     }
 }

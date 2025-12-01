@@ -12,7 +12,6 @@ import use_case.auth.AuthInputData;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.concurrent.CompletableFuture;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -21,17 +20,20 @@ import java.beans.PropertyChangeListener;
  * Swing panel for Steam login functionality.
  */
 public class AuthView extends JPanel implements ActionListener, PropertyChangeListener {
-    private final String viewName = "auth";
+    private final String viewName = "authentication";
     private JButton loginButton;
     private JLabel statusLabel;
     private JProgressBar progressBar;
 
     private AuthController authController = null;
-
+    private AuthViewModel authViewModel;
     /**
      * Creates a new LoginPanel.
      */
-    public AuthView() {
+    public AuthView(AuthViewModel authViewModel) {
+        this.authViewModel = authViewModel;
+        this.authViewModel.addPropertyChangeListener(this);
+
         initializeUI();
     }
 

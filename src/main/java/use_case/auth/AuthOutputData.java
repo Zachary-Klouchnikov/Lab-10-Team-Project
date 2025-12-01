@@ -1,7 +1,6 @@
 package use_case.auth;
 
 import entity.User;
-import entity.SessionManager;
 
 public class AuthOutputData {
     private final User user;
