@@ -7,86 +7,104 @@ import java.awt.*;
 
 public class ComparisonPanel extends JPanel {
 
-    private final User user;
-
-    private final JPanel leftPanel;
-
     private JPanel rightContainer;
     private JComboBox<User> friendCombo;
+    private CardLayout cardLayout;
+    private JPanel statsCard;
+    private JButton backButton;
 
     public ComparisonPanel(User user) {
-        this.user = user;
 
         setLayout(new BorderLayout());
 
-        leftPanel = new UserStatisticsPanel(this.user);
-        JScrollPane leftScroll = createScrollPane(leftPanel);
+        JPanel topBar = new JPanel(new BorderLayout());
+        topBar.setBackground(new Color(42, 42, 42));
 
-        rightContainer = new JPanel(new GridBagLayout());
+        JLabel infoLabel = new JLabel("");
+        infoLabel.setForeground(Color.WHITE);
+        topBar.add(infoLabel, BorderLayout.WEST);
+
+        backButton = new JButton("Back");
+        backButton.setEnabled(false);
+        topBar.add(backButton, BorderLayout.EAST);
+
+        add(topBar, BorderLayout.NORTH);
+
+        JPanel leftPanel = new UserStatisticsPanel(user);
+
+        cardLayout = new CardLayout();
+        rightContainer = new JPanel(cardLayout);
         rightContainer.setBackground(new Color(42, 42, 42));
 
+        JPanel selectorPanel = new JPanel(new GridBagLayout());
+        selectorPanel.setOpaque(false);
+
+        GridBagConstraints sGbc = new GridBagConstraints();
+        sGbc.gridx = 0;
+        sGbc.gridy = 0;
+        sGbc.insets = new Insets(10, 10, 10, 10);
+        sGbc.anchor = GridBagConstraints.CENTER;
+
+        JLabel selectLabel = new JLabel("Select a friend:");
+        selectLabel.setForeground(Color.WHITE);
+        selectorPanel.add(selectLabel, sGbc);
+
         friendCombo = new JComboBox<>(user.getFriends().toArray(new User[0]));
-        friendCombo.setPreferredSize(new Dimension(200, 30));
         friendCombo.addActionListener(e -> loadFriendPanel());
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
+        friendCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof User u) {
+                    setText(u.getUsername());
+                }
+                return this;
+            }
+        });
 
-        rightContainer.add(friendCombo, gbc);
+        sGbc.gridy = 1;
+        selectorPanel.add(friendCombo, sGbc);
 
-        JScrollPane rightScroll = createScrollPane(rightContainer);
+        rightContainer.add(selectorPanel, "selector");
 
-        syncScrollBars(leftScroll, rightScroll);
+        statsCard = new JPanel(new BorderLayout());
+        statsCard.setOpaque(false);
+        rightContainer.add(statsCard, "stats");
 
-        JSplitPane splitPane = new JSplitPane(
-                JSplitPane.HORIZONTAL_SPLIT,
-                leftScroll,
-                rightScroll
+        JPanel combined = new JPanel(new GridLayout(1, 2, 0, 0));
+        combined.setBackground(new Color(42, 42, 42));
+
+        combined.add(leftPanel);
+        combined.add(rightContainer);
+
+        JScrollPane scrollPane = new JScrollPane(combined);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(20);
+        scrollPane.setHorizontalScrollBarPolicy(
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
         );
-        splitPane.setResizeWeight(0.5);
-        splitPane.setDividerSize(5);
-        splitPane.setContinuousLayout(true);
 
-        add(splitPane, BorderLayout.CENTER);
-    }
+        add(scrollPane, BorderLayout.CENTER);
 
-    private JScrollPane createScrollPane(JPanel panel) {
-        JScrollPane sp = new JScrollPane(panel);
-
-        sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        sp.getVerticalScrollBar().setUnitIncrement(20);
-
-        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        sp.setBorder(null);
-        sp.getViewport().setBackground(new Color(42, 42, 42));
-
-        sp.setPreferredSize(null);
-        sp.setMinimumSize(new Dimension(0, 0));
-
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-
-        return sp;
-    }
-
-    private void syncScrollBars(JScrollPane sp1, JScrollPane sp2) {
-        BoundedRangeModel model = sp1.getVerticalScrollBar().getModel();
-        sp2.getVerticalScrollBar().setModel(model);
+        backButton.addActionListener(e -> {
+            cardLayout.show(rightContainer, "selector");
+            backButton.setEnabled(false);
+        });
     }
 
     private void loadFriendPanel() {
         User selected = (User) friendCombo.getSelectedItem();
         if (selected == null) return;
 
-        rightContainer.removeAll();
-        rightContainer.setLayout(new BorderLayout());
+        statsCard.removeAll();
+        statsCard.add(new UserStatisticsPanel(selected), BorderLayout.CENTER);
 
-        JPanel statsPanel = new UserStatisticsPanel(selected);
-        rightContainer.add(statsPanel, BorderLayout.CENTER);
+        statsCard.revalidate();
+        statsCard.repaint();
 
-        // Refresh UI
-        rightContainer.revalidate();
-        rightContainer.repaint();
+        cardLayout.show(rightContainer, "stats");
+        backButton.setEnabled(true);
     }
 }
