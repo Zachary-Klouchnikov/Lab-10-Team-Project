@@ -854,7 +854,7 @@ public class UserStatisticsPanel extends JPanel {
             }
         }
 
-        JLabel rightFooter = new JLabel("Thinking about clearing your backlog?", SwingConstants.CENTER);
+        JLabel rightFooter = new JLabel("How about clearing your backlog?", SwingConstants.CENTER);
         rightFooter.setForeground(Color.LIGHT_GRAY);
         rightFooter.setFont(rightFooter.getFont().deriveFont(Font.ITALIC, 10f));
         rightFooter.setAlignmentX(Component.CENTER_ALIGNMENT);
