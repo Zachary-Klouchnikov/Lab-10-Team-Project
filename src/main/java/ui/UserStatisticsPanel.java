@@ -100,9 +100,9 @@ public class UserStatisticsPanel extends JPanel {
 
         statsPanel.add(createMostPlayedPanel(user.getLibrary(), totalPlaytime));
 
-        statsPanel.add(createHeatmapAllGamesPanel(user.getLibrary()));
-
         statsPanel.add(createTopFiveGamesPanel(user.getLibrary()));
+
+        statsPanel.add(createPlaytimeDistributionPanel(user.getLibrary()));
 
         statsPanel.add(createRecentlyPlayedPanel(user.getLibrary()));
 
@@ -141,10 +141,10 @@ public class UserStatisticsPanel extends JPanel {
         panel.add(title);
         panel.add(Box.createVerticalStrut(10));
 
-        if (totalPlaytime <= 0) {
-            JLabel none = new JLabel("No Data");
+        if (totalPlaytime == 0) {
+            JLabel none = new JLabel("No Data / No playtime");
             none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(bgColor);
+            none.setForeground(Color.LIGHT_GRAY);
             panel.add(none);
             return panel;
         }
@@ -206,7 +206,7 @@ public class UserStatisticsPanel extends JPanel {
         if (games == null || games.isEmpty()) {
             JLabel none = new JLabel("No Data");
             none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(bgColor);
+            none.setForeground(Color.LIGHT_GRAY);
             panel.add(none);
             return panel;
         }
@@ -260,131 +260,6 @@ public class UserStatisticsPanel extends JPanel {
         panel.add(footer);
 
         return panel;
-    }
-
-    private JPanel createHeatmapAllGamesPanel(List<Game> games) {
-
-        JPanel panel = new JPanel();
-        panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(80, 80, 80)),
-                BorderFactory.createEmptyBorder(12, 12, 12, 12)
-        ));
-
-        JLabel title = new JLabel("GAME ACTIVITY SUMMARY");
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        title.setForeground(Color.WHITE);
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
-        panel.add(title);
-        panel.add(Box.createVerticalStrut(10));
-
-        if (games == null || games.isEmpty()) {
-            JLabel none = new JLabel("No Data");
-            none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(Color.LIGHT_GRAY);
-            panel.add(none);
-            return panel;
-        }
-
-        int[] counts = new int[5];
-        for (Game g : games) {
-            int hours = g.getPlaytime() / 60;
-            counts[getColorIndex(hours)]++;
-        }
-
-        int total = games.size();
-
-        JPanel bar = new JPanel();
-        bar.setLayout(new BoxLayout(bar, BoxLayout.X_AXIS));
-        bar.setOpaque(false);
-        bar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
-
-        Color[] colors = {
-                new Color(190, 60, 60),
-                new Color(230, 140, 50),
-                new Color(230, 230, 40),
-                new Color(60, 180, 90),
-                new Color(80, 160, 220)
-        };
-
-        for (int i = 0; i < 5; i++) {
-            int count = counts[i];
-            float pct = (float) count / total;
-
-            JPanel seg = new JPanel();
-            seg.setBackground(colors[i]);
-            seg.setPreferredSize(new Dimension((int)(pct * 300), 28));
-            bar.add(seg);
-        }
-
-        panel.add(bar);
-        panel.add(Box.createVerticalStrut(10));
-
-        JPanel legend = new JPanel(new GridLayout(1, 5, 8, 0));
-        legend.setOpaque(false);
-
-        legend.add(createLegend("0–2h", colors[0]));
-        legend.add(createLegend("2–5h", colors[1]));
-        legend.add(createLegend("5–20h", colors[2]));
-        legend.add(createLegend("20–100h", colors[3]));
-        legend.add(createLegend("100h+", colors[4]));
-
-        panel.add(legend);
-        panel.add(Box.createVerticalStrut(10));
-
-        JLabel footer = new JLabel(getFooterMessage(counts), SwingConstants.CENTER);
-        footer.setAlignmentX(Component.CENTER_ALIGNMENT);
-        footer.setForeground(Color.LIGHT_GRAY);
-        footer.setFont(footer.getFont().deriveFont(Font.ITALIC, 11f));
-
-        panel.add(footer);
-
-        return panel;
-    }
-
-    private int getColorIndex(int hours) {
-        if (hours <= 2) return 0;
-        if (hours <= 5) return 1;
-        if (hours <= 20) return 2;
-        if (hours <= 100) return 3;
-        return 4;
-    }
-
-    private JPanel createLegend(String label, Color color) {
-        JPanel p = new JPanel();
-        p.setOpaque(false);
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-
-        JPanel swatch = new JPanel();
-        swatch.setBackground(color);
-        swatch.setPreferredSize(new Dimension(18, 18));
-        swatch.setMaximumSize(new Dimension(18, 18));
-        swatch.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel text = new JLabel(label);
-        text.setForeground(Color.LIGHT_GRAY);
-        text.setFont(text.getFont().deriveFont(10f));
-        text.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        p.add(swatch);
-        p.add(text);
-        return p;
-    }
-
-    private String getFooterMessage(int[] c) {
-        int total = c[0] + c[1] + c[2] + c[3] + c[4];
-        if (total == 0) return "No games in library.";
-
-        float redPct = c[0] / (float) total;
-        float orangePct = c[1] / (float) total;
-        float bluePct = c[4] / (float) total;
-
-        if (redPct > 0.4f) return "Building quite a big backlog...";
-        if (orangePct > 0.4f) return "One playthrough per game?";
-        if (bluePct > 0.4f) return "You know what you like";
-
-        return "About what I expected";
     }
 
     private JPanel wrapChart(ChartPanel chartPanel) {
@@ -515,6 +390,109 @@ public class UserStatisticsPanel extends JPanel {
 
         return panel;
     }
+
+    private JPanel createPlaytimeDistributionPanel(List<Game> games) {
+
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(80, 80, 80)),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+
+        JLabel title = new JLabel("PLAYTIME DISTRIBUTION", SwingConstants.CENTER);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        title.setForeground(Color.WHITE);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        panel.add(title);
+        panel.add(Box.createVerticalStrut(10));
+
+        if (games == null || games.isEmpty()) {
+            JLabel none = new JLabel("No Data");
+            none.setAlignmentX(Component.CENTER_ALIGNMENT);
+            none.setForeground(Color.LIGHT_GRAY);
+            panel.add(none);
+            return panel;
+        }
+
+        int[] bins = new int[] {5, 15, 30, 60, 150};
+        int[] counts = new int[bins.length + 1];
+
+        for (Game g : games) {
+            int hours = g.getPlaytime() / 60;
+
+            int binIndex = 0;
+            while (binIndex < bins.length && hours > bins[binIndex])
+                binIndex++;
+
+            counts[binIndex]++;
+        }
+
+
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+        String series = "Games";
+
+        int lower = 0;
+        for (int i = 0; i < bins.length; i++) {
+            String label = lower + "–" + bins[i] + " hrs";
+            dataset.addValue(counts[i], series, label);
+            lower = bins[i];
+        }
+        dataset.addValue(counts[bins.length], series, "150+ hrs");
+
+        JFreeChart chart = ChartFactory.createBarChart(
+                null,
+                "Playtime Range",
+                "Games",
+                dataset,
+                PlotOrientation.VERTICAL,
+                false,
+                true,
+                false
+        );
+
+        chart.setBackgroundPaint(bgColor);
+
+        CategoryPlot plot = chart.getCategoryPlot();
+        plot.setBackgroundPaint(bgColor);
+        plot.setOutlineVisible(false);
+        plot.setRangeGridlinePaint(Color.GRAY);
+
+        BarRenderer renderer = (BarRenderer) plot.getRenderer();
+        renderer.setBarPainter(new StandardBarPainter());
+        renderer.setSeriesPaint(0, new Color(80, 160, 220));
+        renderer.setShadowVisible(false);
+
+        plot.getDomainAxis().setTickLabelPaint(Color.LIGHT_GRAY);
+        plot.getDomainAxis().setLabelPaint(Color.LIGHT_GRAY);
+        plot.getRangeAxis().setTickLabelPaint(Color.LIGHT_GRAY);
+        plot.getRangeAxis().setLabelPaint(Color.LIGHT_GRAY);
+
+        ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setPreferredSize(null);
+        chartPanel.setMaximumDrawWidth(Integer.MAX_VALUE);
+        chartPanel.setMaximumDrawHeight(Integer.MAX_VALUE);
+        chartPanel.setMinimumDrawWidth(0);
+        chartPanel.setMinimumDrawHeight(0);
+        chartPanel.setMouseWheelEnabled(true);
+
+        JPanel wrapped = wrapChart(chartPanel);
+        wrapped.setPreferredSize(new Dimension(300, 240));
+
+        panel.add(wrapped);
+        panel.add(Box.createVerticalStrut(12));
+
+        JLabel footer = new JLabel("How your library's playtime is distributed.", SwingConstants.CENTER);
+        footer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        footer.setForeground(Color.LIGHT_GRAY);
+        footer.setFont(footer.getFont().deriveFont(Font.ITALIC, 11f));
+        panel.add(footer);
+
+        return panel;
+    }
+
 
     private JPanel createRecentlyPlayedPanel(List<Game> games){
         JPanel panel = new JPanel();
@@ -785,14 +763,14 @@ public class UserStatisticsPanel extends JPanel {
         for (Game g : games) {
             int total = g.getPlaytime() / 60;
             int recent = g.getRecentPlaytime() / 60;
-            if (total >= 50 && recent <= 1) {
+            if (total >= 50 && recent <= 1 && oldFavorites.size() < 5) {
                 oldFavorites.add(g);
             }
         }
 
         List<Game> dead = new ArrayList<>();
         for (Game g : games) {
-            if (g.getPlaytime() == 0) {
+            if (g.getPlaytime() == 0 && dead.size() < 5) {
                 dead.add(g);
             }
         }
@@ -869,7 +847,6 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-
     private JPanel makeSmallGameLabel(Game g, boolean showHours) {
         JPanel p = new JPanel(new BorderLayout());
         p.setOpaque(false);
@@ -893,8 +870,5 @@ public class UserStatisticsPanel extends JPanel {
 
         return p;
     }
-
-
-
 
 }
