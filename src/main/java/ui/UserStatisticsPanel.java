@@ -12,16 +12,27 @@ import javax.swing.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+
+import java.awt.*;
+
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.plot.PlotOrientation;
+
+import org.jfree.chart.renderer.xy.XYShapeRenderer;
+
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+
+import java.awt.geom.Ellipse2D;
+
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.renderer.category.BarRenderer;
-import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 
 
-import java.awt.*;
 import java.util.List;
 
 public class UserStatisticsPanel extends JPanel {
@@ -96,6 +107,10 @@ public class UserStatisticsPanel extends JPanel {
         statsPanel.add(createRecentlyPlayedPanel(user.getLibrary()));
 
         statsPanel.add(createTopFiveRecentGamesPanel(user.getLibrary()));
+
+        statsPanel.add(createScatterPlaytimeVsRecentPanel(user.getLibrary()));
+
+        statsPanel.add(createOldFavoritesAndUnplayedGamesPanel(user.getLibrary()));
 
         add(statsPanel, BorderLayout.CENTER);
 
@@ -661,5 +676,225 @@ public class UserStatisticsPanel extends JPanel {
 
         return panel;
     }
+
+    private JPanel createScatterPlaytimeVsRecentPanel(List<Game> games) {
+
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(80, 80, 80)),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+
+        JLabel title = new JLabel("PLAYTIME vs RECENT PLAYTIME", SwingConstants.CENTER);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        title.setForeground(Color.WHITE);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        panel.add(title);
+        panel.add(Box.createVerticalStrut(10));
+
+        if (games == null || games.isEmpty()) {
+            JLabel none = new JLabel("No Data");
+            none.setAlignmentX(Component.CENTER_ALIGNMENT);
+            none.setForeground(Color.LIGHT_GRAY);
+            panel.add(none);
+            return panel;
+        }
+
+        XYSeries series = new XYSeries("Games");
+        for (Game g : games) {
+            int total = g.getPlaytime() / 60;
+            int recent = g.getRecentPlaytime() / 60;
+            series.add(total, recent);
+        }
+
+        XYSeriesCollection dataset = new XYSeriesCollection(series);
+
+        JFreeChart chart = ChartFactory.createScatterPlot(
+                null,
+                "Total Playtime (hrs)",
+                "Recent Playtime (hrs)",
+                dataset,
+                PlotOrientation.VERTICAL,
+                false,
+                true,
+                false
+        );
+
+        chart.setBackgroundPaint(bgColor);
+
+        XYPlot plot = (XYPlot) chart.getPlot();
+        plot.setBackgroundPaint(bgColor);
+        plot.setRangeGridlinePaint(Color.GRAY);
+        plot.setDomainGridlinePaint(Color.GRAY);
+        plot.setOutlineVisible(false);
+
+        XYShapeRenderer renderer = new XYShapeRenderer();
+
+        renderer.setSeriesShape(0, new Ellipse2D.Double(-3, -3, 6, 6));
+        renderer.setSeriesPaint(0, new Color(80, 160, 220));
+
+        plot.setRenderer(renderer);
+
+        plot.getDomainAxis().setLabelPaint(Color.LIGHT_GRAY);
+        plot.getDomainAxis().setTickLabelPaint(Color.LIGHT_GRAY);
+        plot.getRangeAxis().setLabelPaint(Color.LIGHT_GRAY);
+        plot.getRangeAxis().setTickLabelPaint(Color.LIGHT_GRAY);
+
+        ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setMouseWheelEnabled(true);
+        chartPanel.setPreferredSize(null);
+
+        JPanel wrapped = wrapChart(chartPanel);
+        wrapped.setPreferredSize(new Dimension(300, 260));
+
+        panel.add(wrapped);
+        panel.add(Box.createVerticalStrut(10));
+
+        return panel;
+    }
+
+    private JPanel createOldFavoritesAndUnplayedGamesPanel(List<Game> games) {
+
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(80, 80, 80)),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+
+        // --- FIXED SIZE FOR THE CARD ---
+        Dimension fixed = new Dimension(300, 220);
+        panel.setPreferredSize(fixed);
+        panel.setMinimumSize(fixed);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 220));
+        // Maximum width allowed to stretch horizontally
+        // Height remains fixed; width grows under BoxLayout
+
+        JLabel title = new JLabel("GAMES YOU SHOULD PLAY", SwingConstants.CENTER);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        title.setForeground(Color.WHITE);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        panel.add(title);
+        panel.add(Box.createVerticalStrut(10));
+
+
+        List<Game> oldFavorites = new ArrayList<>();
+        for (Game g : games) {
+            int total = g.getPlaytime() / 60;
+            int recent = g.getRecentPlaytime() / 60;
+            if (total >= 50 && recent <= 1) {
+                oldFavorites.add(g);
+            }
+        }
+
+        List<Game> dead = new ArrayList<>();
+        for (Game g : games) {
+            if (g.getPlaytime() == 0) {
+                dead.add(g);
+            }
+        }
+
+        JPanel columns = new JPanel(new GridLayout(1, 2, 12, 0));
+        columns.setOpaque(false);
+
+
+        JPanel left = new JPanel();
+        left.setOpaque(false);
+        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+
+        JLabel leftTitle = new JLabel("OLD FAVOURITES");
+        leftTitle.setForeground(Color.WHITE);
+        leftTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        leftTitle.setFont(leftTitle.getFont().deriveFont(Font.BOLD, 14f));
+        left.add(leftTitle);
+        left.add(Box.createVerticalStrut(4));
+
+        if (oldFavorites.isEmpty()) {
+            JLabel none = new JLabel("None found");
+            none.setForeground(Color.LIGHT_GRAY);
+            none.setAlignmentX(Component.CENTER_ALIGNMENT);
+            left.add(none);
+        } else {
+            for (Game g : oldFavorites) {
+                left.add(makeSmallGameLabel(g, false));
+                left.add(Box.createVerticalStrut(3));
+            }
+        }
+
+        JLabel leftFooter = new JLabel("Favourites you haven't played in a while.", SwingConstants.CENTER);
+        leftFooter.setForeground(Color.LIGHT_GRAY);
+        leftFooter.setFont(leftFooter.getFont().deriveFont(Font.ITALIC, 10f));
+        leftFooter.setAlignmentX(Component.CENTER_ALIGNMENT);
+        left.add(Box.createVerticalStrut(8));
+        left.add(leftFooter);
+
+        JPanel right = new JPanel();
+        right.setOpaque(false);
+        right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
+
+        JLabel rightTitle = new JLabel("UNPLAYED GAMES");
+        rightTitle.setForeground(Color.WHITE);
+        rightTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        rightTitle.setFont(rightTitle.getFont().deriveFont(Font.BOLD, 14f));
+        right.add(rightTitle);
+        right.add(Box.createVerticalStrut(4));
+
+        if (dead.isEmpty()) {
+            JLabel none = new JLabel("None found");
+            none.setForeground(Color.LIGHT_GRAY);
+            none.setAlignmentX(Component.CENTER_ALIGNMENT);
+            right.add(none);
+        } else {
+            for (Game g : dead) {
+                right.add(makeSmallGameLabel(g, true));
+                right.add(Box.createVerticalStrut(3));
+            }
+        }
+
+        JLabel rightFooter = new JLabel("Thinking about clearing your backlog?", SwingConstants.CENTER);
+        rightFooter.setForeground(Color.LIGHT_GRAY);
+        rightFooter.setFont(rightFooter.getFont().deriveFont(Font.ITALIC, 10f));
+        rightFooter.setAlignmentX(Component.CENTER_ALIGNMENT);
+        right.add(Box.createVerticalStrut(8));
+        right.add(rightFooter);
+
+
+        columns.add(left);
+        columns.add(right);
+        panel.add(columns);
+
+        return panel;
+    }
+
+
+    private JPanel makeSmallGameLabel(Game g, boolean showHours) {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setOpaque(false);
+
+        JLabel name = new JLabel(g.getTitle());
+        name.setForeground(Color.LIGHT_GRAY);
+        name.setFont(name.getFont().deriveFont(Font.PLAIN, 12f));
+
+        p.add(name, BorderLayout.WEST);
+
+        String hrs = showHours
+                ? ""
+                : (g.getPlaytime() / 60) + " hrs";
+
+        if (!hrs.isBlank()) {
+            JLabel hrsLabel = new JLabel(hrs);
+            hrsLabel.setForeground(Color.GRAY);
+            hrsLabel.setFont(hrsLabel.getFont().deriveFont(11f));
+            p.add(hrsLabel, BorderLayout.EAST);
+        }
+
+        return p;
+    }
+
+
+
 
 }
