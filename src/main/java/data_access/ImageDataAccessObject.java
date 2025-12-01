@@ -74,28 +74,28 @@ public class ImageDataAccessObject {
      * Fetches a User's profile picture from disk.
      *
      * @param user The User object.
-     * @return JLabel Returns the image imbedded into a JLabel, or the default image.
+     * @return Icon Returns the image imbedded into a JLabel, or the default image.
      */
-    public static JLabel getImage(User user) {
-        JLabel out;
+    public static Icon getImage(User user) {
+        ImageIcon out;
 
         Path projRoot = getProjectRoot();
         if (projRoot == null) {
-            return getDefaultImage();
+            return getDefaultImage().getIcon();
         }
 
         Path imageDir = projRoot.resolve(Paths.get("src", "main", "resources", "users"));
         File imageFile = imageDir.resolve(String.format("%s.jpg", user.getImageHash())).toFile();
         if (!imageFile.exists()) {
-            return getDefaultImage();
+            return getDefaultImage().getIcon();
         }
 
         try {
             BufferedImage image = ImageIO.read(imageFile);
-            out = new JLabel(new ImageIcon(image));
+            out = new ImageIcon(image);
         } catch (Exception e) {
             e.printStackTrace();
-            return getDefaultImage();
+            return getDefaultImage().getIcon();
         }
         return out;
     }
@@ -104,28 +104,28 @@ public class ImageDataAccessObject {
      * Fetches a Game's icon from disk.
      *
      * @param game The Game object representation.
-     * @return JLabel Returns the image imbedded into a JLabel, or the default image.
+     * @return ImageIcon Returns the image or the default image.
      */
-    public static JLabel getImage(Game game) {
-        JLabel out;
+    public static Icon getImage(Game game) {
+        ImageIcon out;
 
         Path projRoot = getProjectRoot();
         if (projRoot == null) {
-            return getDefaultImage();
+            return getDefaultImage().getIcon();
         }
 
         Path imageDir = projRoot.resolve(Paths.get("src", "main", "resources", "games"));
         File imageFile = imageDir.resolve(String.format("%s.jpg", game.getImageHash())).toFile();
         if (!imageFile.exists()) {
-            return getDefaultImage();
+            return getDefaultImage().getIcon();
         }
 
         try {
             BufferedImage image = ImageIO.read(imageFile);
-            out = new JLabel(new ImageIcon(image));
+            out = new ImageIcon(image);
         } catch (Exception e) {
             e.printStackTrace();
-            return getDefaultImage();
+            return getDefaultImage().getIcon();
         }
         return out;
     }
@@ -135,18 +135,17 @@ public class ImageDataAccessObject {
      *
      * @return JLabel Returns the default image imbedded into a JLabel, or a text label as a stand-in.
      */
-    private static JLabel getDefaultImage() {
+    public static JLabel getDefaultImage() {
         JLabel out;
         Path projRoot = getProjectRoot();
         Path imageDir = projRoot.resolve(Paths.get("src", "main", "resources"));
         File imageFile = imageDir.resolve("default.jpg").toFile();
         try {
             BufferedImage image = ImageIO.read(imageFile);
-            out = new JLabel(new ImageIcon(image)); 
+            out = new JLabel(new ImageIcon(image));
         } catch (IOException e) {
             e.printStackTrace();
-            // Fallback to the fallback: a temp label.
-            return new JLabel("[IMAGE]");
+            return null;
         }
         return out;
     }
