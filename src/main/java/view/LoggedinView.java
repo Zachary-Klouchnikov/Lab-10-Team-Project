@@ -1,5 +1,6 @@
 package view;
 
+import data_access.SteamGameLauncher;
 import entity.User;
 import entity.Game;
 import interface_adapter.loggedin.LoggedinState;
@@ -11,12 +12,14 @@ import javax.swing.*;
 
 import data_access.ImageDataAccessObject;
 
+import java.util.HashMap;
 import java.util.List;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.util.Map;
 
 public class LoggedinView extends JPanel implements ActionListener, PropertyChangeListener{
     private final String viewName = "loggedin";
@@ -33,9 +36,11 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
     private JButton logoutButton;
     private JButton refreshButton;
 
-    private JButton playButton;
+    private JButton launchButton;
     private JButton compareButton;
     private JButton reviewButton;
+
+    private Map<JLabel, Game> gameLookup = new HashMap<>();
 
     private LogoutController logoutController = null;
     private RefreshController refreshController = null;
@@ -148,8 +153,8 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
             private final JLabel label = new JLabel();
             @Override
             public Component getListCellRendererComponent(
-                JList<? extends JLabel> list, 
-                JLabel value, 
+                JList<? extends JLabel> list,
+                JLabel value,
                 int index, 
                 boolean isSelected, 
                 boolean cellHasFocus) {
@@ -192,14 +197,50 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         gamePanel.add(gameCountLabel, gbc);
 
         // PlayButton.
-        playButton = createButton("Launch", new Color(0, 200, 83));
-        playButton.addActionListener(e -> {
-            System.err.println("TODO: Implement Launching games!");
+        launchButton = createButton("Launch", new Color(0, 200, 83));
+        launchButton.addActionListener(e -> {
+            JLabel selectedLabel = gameList.getSelectedValue();
+
+            if (selectedLabel == null) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Please select a game to launch.",
+                        "No Game Selected",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
+            Game selectedGame = gameLookup.get(selectedLabel);
+
+            if (selectedGame == null) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Unable to find the game information.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            long appId = selectedGame.getId();
+
+            SteamGameLauncher steamGameLauncher = new SteamGameLauncher();
+            boolean success = steamGameLauncher.launchGame(appId, null);
+
+            if (!success) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Failed to launch the game.",
+                        "Launch Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
         });
         gbc.gridy = 2;
         gbc.gridwidth = 1;
         gbc.anchor = GridBagConstraints.EAST;
-        gamePanel.add(playButton, gbc);
+        gamePanel.add(launchButton, gbc);
         gbc.anchor = GridBagConstraints.WEST;
 
         JPanel friendPanel = new JPanel(new GridBagLayout());
@@ -379,6 +420,8 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
             List<Game> games = user.getLibrary();
             gameCountLabel.setText("Games: " + (games != null ? games.size() : 0));
 
+            gameLookup.clear();
+
             if (games != null && !games.isEmpty()) {
                 JLabel[] gameNames = new JLabel[games.size()];
                 for (int i = 0; i < games.size(); ++i) {
@@ -387,6 +430,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
                     label.setIcon(g.getImage());
                     label.setText(g.getTitle());
                     gameNames[i] = label;
+                    gameLookup.put(label, g);
                 }
                 gameList.setListData(gameNames);
             } else {

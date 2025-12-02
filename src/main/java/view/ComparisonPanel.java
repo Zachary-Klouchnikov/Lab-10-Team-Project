@@ -13,7 +13,6 @@ public class ComparisonPanel extends JPanel {
     private CardLayout cardLayout;
     private JPanel statsCard;
     private JButton backButton;
-    private JButton launchButton;
 
     public ComparisonPanel(User user) {
 
@@ -29,11 +28,6 @@ public class ComparisonPanel extends JPanel {
         backButton = new JButton("Back");
         backButton.setEnabled(false);
         topBar.add(backButton, BorderLayout.EAST);
-
-        // TODO: REMOVE THIS BUTTON
-        launchButton = new JButton("Launch");
-        launchButton.setEnabled(true);
-        topBar.add(launchButton, BorderLayout.WEST);
 
         add(topBar, BorderLayout.NORTH);
 
@@ -98,24 +92,6 @@ public class ComparisonPanel extends JPanel {
         backButton.addActionListener(e -> {
             cardLayout.show(rightContainer, "selector");
             backButton.setEnabled(false);
-        });
-
-        // TODO: REMOVE THIS BUTTON
-        SteamGameLauncher steamGameLauncher = new SteamGameLauncher();
-
-        launchButton.addActionListener(e -> {
-            long appId = 381210;
-
-            boolean success = steamGameLauncher.launchGame(appId, null);
-
-            if (!success) {
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Failed to launch the game.",
-                        "Launch Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
-            }
         });
     }
 

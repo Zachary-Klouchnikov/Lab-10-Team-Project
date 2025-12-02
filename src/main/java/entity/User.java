@@ -52,7 +52,7 @@ public class User {
         return this.profilePicture;
     }
     
-    public JLabel getImage() {
+    public Icon getImage() {
         return ImageDataAccessObject.getImage(this);
     }
 
