@@ -14,7 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ReviewAccessObject {
-    public ArrayList<String> ReviewDisplay(User friend, OkHttpClient client) {
+    private final OkHttpClient client = new OkHttpClient().newBuilder().build();
+    public ArrayList<String> ReviewDisplay(User friend) {
         long friendId = friend.getId();
         ArrayList<String> out = new ArrayList<>();
         List<Game> lib = friend.getLibrary();
