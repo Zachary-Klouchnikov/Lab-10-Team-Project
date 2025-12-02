@@ -4,31 +4,29 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class UserStatisticsPanelTest {
+class UserStatisticsPanelTest {
 
     private entity.Game game(String title, int play, int recent) {
-        javax.swing.JLabel img =
-                new javax.swing.JLabel(
-                        new javax.swing.ImageIcon(
-                                new java.awt.image.BufferedImage(
-                                        20, 20, java.awt.image.BufferedImage.TYPE_INT_RGB
-                                )
-                        )
-                );
-        return new entity.Game(title, play, recent, img);
+        return new entity.Game(
+                0,
+                title,
+                play,
+                "test_thumbnail",
+                recent
+        );
     }
 
+
     private entity.User makeUser(List<entity.Game> games) {
-        javax.swing.JLabel img =
-                new javax.swing.JLabel(
-                        new javax.swing.ImageIcon(
-                                new java.awt.image.BufferedImage(
-                                        40, 40, java.awt.image.BufferedImage.TYPE_INT_RGB
-                                )
-                        )
-                );
-        return new entity.User("User", "12345", img, games);
+        return new entity.User(
+                12345L,
+                "User",
+                new java.util.ArrayList<>(),
+                games,
+                "test_profile"
+        );
     }
+
 
     @Test
     void testConstructorFullFlow() {
