@@ -1,6 +1,5 @@
 package entity;
 
-import java.nio.file.Path;
 import data_access.ImageDataAccessObject;
 import javax.swing.Icon;
 
@@ -10,7 +9,6 @@ public class Game {
     private final int playtime;
     private final String thumbnail;
     private final int recentPlaytime;
-    private final Path directory;
 
     public Game(long appid, String title, int playtime_forever, String thumbnail, int recent_playtime) {
         this.appid = appid;
@@ -18,7 +16,6 @@ public class Game {
         this.playtime = playtime_forever;
         this.thumbnail = thumbnail;
         this.recentPlaytime = recent_playtime;
-        this.directory = null;
     }
 
     public long getId() {
@@ -36,10 +33,6 @@ public class Game {
 
     public int getRecentPlaytime() {
         return this.recentPlaytime;
-    }
-
-    public Path getDirectory() {
-        return this.directory;
     }
 
     // This should return a string, when fed into an ImageDataAccessObject, actually returns an image.
