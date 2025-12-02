@@ -10,6 +10,9 @@ import interface_adapter.loggedin.*;
 import interface_adapter.logout.*;
 import interface_adapter.compareusers.*;
 import use_case.auth.*;
+import use_case.launch.LaunchInputBoundary;
+import use_case.launch.LaunchInteractor;
+import use_case.launch.LaunchOutputBoundary;
 import use_case.logout.*;
 import use_case.refresh.*;
 import use_case.compareusers.*;
@@ -61,6 +64,16 @@ public class AppBuilder {
         final AuthInputBoundary inputBoundary = new AuthInteractor(outputBoundary, authDAO, userDAO);
         AuthController authController = new AuthController(inputBoundary);
         authView.setAuthController(authController);
+        return this;
+    }
+
+    public AppBuilder addLaunchUseCase() {
+        SteamGameLauncher launcher = new SteamGameLauncher();
+        final LaunchOutputBoundary outputBoundary = new LaunchPresenter();
+        final LaunchInputBoundary inputBoundary = new LaunchInteractor(launcher, outputBoundary);
+        LaunchController launchController = new LaunchController(inputBoundary);
+
+        loggedin.setLaunchController(launchController);
         return this;
     }
 

@@ -1,5 +1,7 @@
 package view;
 
+import entity.Game;
+import interface_adapter.loggedin.LaunchController;
 import interface_adapter.loggedin.LoggedinState;
 import interface_adapter.logout.LogoutController;
 import interface_adapter.loggedin.LoggedinViewModel;
@@ -13,12 +15,14 @@ import entity.SessionManager;
 import entity.User;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.util.Map;
 
 public class LoggedinView extends JPanel implements ActionListener, PropertyChangeListener{
     private final String viewName = "loggedin";
@@ -38,6 +42,9 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
     private JButton compareButton;
     private JButton reviewButton;
 
+    private Map<Icon, Game> gameLookup = new HashMap<>();
+
+    private LaunchController launchController = null;
     private LogoutController logoutController = null;
     private RefreshController refreshController = null;
     private CompareUsersController compareUsersController = null;
@@ -198,7 +205,9 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         // PlayButton.
         launchButton = createButton("Launch", new Color(0, 200, 83));
         launchButton.addActionListener(e -> {
-            System.err.println("TODO: Implement Launch View!");
+            JLabel selectedLabel = gameList.getSelectedValue();
+            Game selectedGame = gameLookup.get(selectedLabel);
+            launchController.execute(selectedLabel, selectedGame);
         });
         gbc.gridy = 2;
         gbc.gridwidth = 1;
@@ -402,11 +411,23 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
             friendList.setListData(new JLabel[] { new JLabel("No friends found") });
         }
 
+        List<Game> games = user.getLibrary();
         List<JLabel> gameLabels = state.getGameLabels() != null ? state.getGameLabels() : new ArrayList<>();
         gameCountLabel.setText("Games: " + gameLabels.size());
 
+        gameLookup.clear();
+
         if (!gameLabels.isEmpty()) {
+            for (int i = 0; i < games.size(); ++i) {
+                Game g = games.get(i);
+                Icon label = new Icon();
+                label.setIcon(g.getImage());
+                label.setText(g.getTitle());
+                gameNames[i] = label;
+                gameLookup.put(label, g);
+            }
             gameList.setListData(gameLabels.toArray(new JLabel[0]));
+            gameLookup.put(label, g);
         } else {
             gameList.setListData(new JLabel[] { new JLabel("No games found") });
         }
@@ -451,6 +472,10 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
 
     public void setLogoutController(LogoutController logoutController) {
         this.logoutController = logoutController;
+    }
+
+    public void setLaunchController(LaunchController launchController) {
+        this.launchController = launchController;
     }
 
     public void setRefreshController(RefreshController refreshController) {
