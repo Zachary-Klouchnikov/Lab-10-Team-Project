@@ -305,7 +305,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         return panel;
     }
 
-    private JPanel wrapChart(ChartPanel chartPanel) {
+    JPanel wrapChart(ChartPanel chartPanel) {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(false);
         wrapper.add(chartPanel, BorderLayout.CENTER);

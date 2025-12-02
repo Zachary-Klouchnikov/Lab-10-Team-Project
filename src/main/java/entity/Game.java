@@ -1,5 +1,6 @@
 package entity;
-import java.util.List;
+
+import java.nio.file.Path;
 import data_access.ImageDataAccessObject;
 import javax.swing.Icon;
 
