@@ -505,7 +505,6 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-
     private JPanel createRecentlyPlayedPanel(List<Game> games){
         JPanel panel = new JPanel();
         panel.setOpaque(false);
@@ -538,12 +537,20 @@ public class UserStatisticsPanel extends JPanel {
             }
         }
 
+        JPanel contentRow = new JPanel();
+        contentRow.setOpaque(false);
+        contentRow.setLayout(new BoxLayout(contentRow, BoxLayout.X_AXIS));
+
+        JPanel leftContent = new JPanel();
+        leftContent.setOpaque(false);
+        leftContent.setLayout(new BoxLayout(leftContent, BoxLayout.Y_AXIS));
+
         JLabel gameName = new JLabel(recentlyPlayed.getTitle(), SwingConstants.CENTER);
         gameName.setAlignmentX(Component.CENTER_ALIGNMENT);
         gameName.setForeground(Color.LIGHT_GRAY);
         gameName.setFont(gameName.getFont().deriveFont(Font.BOLD, 18f));
-        panel.add(gameName);
-        panel.add(Box.createVerticalStrut(6));
+        leftContent.add(gameName);
+        leftContent.add(Box.createVerticalStrut(6));
 
         int hours = recentlyPlayed.getRecentPlaytime() / 60;
 
@@ -551,8 +558,20 @@ public class UserStatisticsPanel extends JPanel {
         playtime.setAlignmentX(Component.CENTER_ALIGNMENT);
         playtime.setForeground(Color.WHITE);
         playtime.setFont(playtime.getFont().deriveFont(Font.PLAIN, 13f));
-        panel.add(playtime);
-        panel.add(Box.createVerticalStrut(10));
+        leftContent.add(playtime);
+        leftContent.add(Box.createVerticalStrut(10));
+
+        contentRow.add(leftContent, BorderLayout.WEST);
+        contentRow.add(recentlyPlayed.getImage());
+        panel.add(contentRow);
+
+        int totalRecentPlaytime = 0;
+        for (Game g : games) {
+            totalRecentPlaytime += g.getRecentPlaytime();
+        }
+        panel.add(wrapChart(createMostPlayedChart(recentlyPlayed.getRecentPlaytime(),
+                totalRecentPlaytime - recentlyPlayed.getRecentPlaytime(),
+                recentlyPlayed.getTitle())));
 
         String message;
         if (hours < 2){
