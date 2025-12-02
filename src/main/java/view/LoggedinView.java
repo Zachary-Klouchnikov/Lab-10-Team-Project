@@ -1,8 +1,8 @@
 package view;
 
-import data_access.SteamGameLauncher;
 import entity.User;
 import entity.Game;
+import interface_adapter.loggedin.LaunchController;
 import interface_adapter.loggedin.LoggedinState;
 import interface_adapter.logout.LogoutController;
 import interface_adapter.loggedin.LoggedinViewModel;
@@ -10,6 +10,7 @@ import interface_adapter.loggedin.RefreshController;
 
 import javax.swing.*;
 
+import data_access.SteamGameLauncher;
 import data_access.ImageDataAccessObject;
 
 import java.util.HashMap;
@@ -42,6 +43,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
 
     private Map<JLabel, Game> gameLookup = new HashMap<>();
 
+    private LaunchController launchController = null;
     private LogoutController logoutController = null;
     private RefreshController refreshController = null;
 
@@ -196,46 +198,13 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         gbc.gridwidth = 1;
         gamePanel.add(gameCountLabel, gbc);
 
-        // PlayButton.
+        // LaunchButton.
         launchButton = createButton("Launch", new Color(0, 200, 83));
         launchButton.addActionListener(e -> {
             JLabel selectedLabel = gameList.getSelectedValue();
-
-            if (selectedLabel == null) {
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Please select a game to launch.",
-                        "No Game Selected",
-                        JOptionPane.WARNING_MESSAGE
-                );
-                return;
-            }
-
             Game selectedGame = gameLookup.get(selectedLabel);
+            launchController.execute(selectedLabel, selectedGame);
 
-            if (selectedGame == null) {
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Unable to find the game information.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
-
-            long appId = selectedGame.getId();
-
-            SteamGameLauncher steamGameLauncher = new SteamGameLauncher();
-            boolean success = steamGameLauncher.launchGame(appId, null);
-
-            if (!success) {
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Failed to launch the game.",
-                        "Launch Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
-            }
         });
         gbc.gridy = 2;
         gbc.gridwidth = 1;
@@ -478,6 +447,10 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
 
     public void setLogoutController(LogoutController logoutController) {
         this.logoutController = logoutController;
+    }
+
+    public void setLaunchController(LaunchController launchController) {
+        this.launchController = launchController;
     }
 
     public void setRefreshController(RefreshController refreshController) {

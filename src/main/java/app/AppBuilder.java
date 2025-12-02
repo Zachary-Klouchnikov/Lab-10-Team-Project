@@ -9,6 +9,9 @@ import interface_adapter.auth.*;
 import interface_adapter.loggedin.*;
 import interface_adapter.logout.*;
 import use_case.auth.*;
+import use_case.launch.LaunchInputBoundary;
+import use_case.launch.LaunchInteractor;
+import use_case.launch.LaunchOutputBoundary;
 import use_case.logout.*;
 import use_case.refresh.*;
 import view.*;
@@ -53,6 +56,16 @@ public class AppBuilder {
         return this;
     }
 
+    public AppBuilder addLaunchUseCase() {
+        SteamGameLauncher launcher = new SteamGameLauncher();
+        final LaunchOutputBoundary outputBoundary = new LaunchPresenter();
+        final LaunchInputBoundary inputBoundary = new LaunchInteractor(launcher, outputBoundary);
+        LaunchController launchController = new LaunchController(inputBoundary);
+
+        loggedin.setLaunchController(launchController);
+        return this;
+    }
+
     public AppBuilder addRefreshUseCase() {
         final RefreshOutputBoundary outputBoundary = new RefreshPresenter(loggedinModel, authViewModel, viewManagerModel);
         final RefreshInputBoundary inputBoundary = new RefreshInteractor(outputBoundary);
@@ -94,12 +107,13 @@ public class AppBuilder {
         });
 
         JFrame app = new AppBuilder()
-            .addAuthView()
-            .addLoggedinView()
-            .addAuthUseCase()
-            .addRefreshUseCase()
-            .addLogoutUseCase()
-            .build();
+                .addAuthView()
+                .addLoggedinView()
+                .addAuthUseCase()
+                .addLaunchUseCase()
+                .addRefreshUseCase()
+                .addLogoutUseCase()
+                .build();
 
         app.pack();
         app.setLocationRelativeTo(null);
