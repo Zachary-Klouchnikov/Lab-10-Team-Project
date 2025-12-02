@@ -32,9 +32,9 @@ public class AppBuilder {
     private LoggedinView loggedin;
     private AuthViewModel authViewModel;
     private LoggedinViewModel loggedinModel;
-    private ReviewViewModel reviewViewModel;
+    private ReviewViewModel reviewViewModel = new ReviewViewModel();
 
-    public AppBuilder () {
+    public AppBuilder() {
         cardPanel.setLayout(cardLayout);
     }
 
@@ -61,7 +61,8 @@ public class AppBuilder {
     }
 
     public AppBuilder addRefreshUseCase() {
-        final RefreshOutputBoundary outputBoundary = new RefreshPresenter(loggedinModel, authViewModel, viewManagerModel);
+        final RefreshOutputBoundary outputBoundary = new RefreshPresenter(loggedinModel, authViewModel,
+                viewManagerModel);
         final RefreshInputBoundary inputBoundary = new RefreshInteractor(outputBoundary);
         RefreshController refreshController = new RefreshController(inputBoundary);
 
@@ -89,7 +90,7 @@ public class AppBuilder {
         final JFrame app = new JFrame("Steam-Wrapped");
         app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         app.add(cardPanel);
-        
+
         viewManagerModel.setState(authView.getViewName());
         viewManagerModel.firePropertyChange();
 
@@ -101,21 +102,20 @@ public class AppBuilder {
             // Check if API key is set (optional warning)
             if (System.getenv("APIKEY") == null || System.getenv("APIKEY").isEmpty()) {
                 JOptionPane.showMessageDialog(
-                    null,
-                    "Steam API key (APIKEY environment variable) is not set."
-                );
+                        null,
+                        "Steam API key (APIKEY environment variable) is not set.");
                 System.exit(0);
             }
         });
 
         JFrame app = new AppBuilder()
-            .addReviewUseCase()
-            .addAuthView()
-            .addLoggedinView()
-            .addAuthUseCase()
-            .addRefreshUseCase()
-            .addLogoutUseCase()
-            .build();
+                .addAuthView()
+                .addLoggedinView()
+                .addAuthUseCase()
+                .addRefreshUseCase()
+                .addLogoutUseCase()
+                .addReviewUseCase()
+                .build();
 
         app.pack();
         app.setLocationRelativeTo(null);
