@@ -1,7 +1,5 @@
 package view;
 
-import entity.User;
-import entity.Game;
 import interface_adapter.loggedin.LoggedinState;
 import interface_adapter.logout.LogoutController;
 import interface_adapter.loggedin.LoggedinViewModel;
@@ -22,7 +20,6 @@ import java.beans.PropertyChangeEvent;
 
 public class LoggedinView extends JPanel implements ActionListener, PropertyChangeListener{
     private final String viewName = "loggedin";
-    private User user;
     private LoggedinViewModel loggedinViewModel;   
 
     private JLabel profilePicture;
@@ -323,7 +320,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         // Refresh button
         refreshButton = createButton("Refresh Data", new Color(0, 114, 188));
         refreshButton.addActionListener(e -> {
-            refreshController.execute(this.user);
+            refreshController.execute(loggedinViewModel.getState());
         });
         panel.add(refreshButton);
 
@@ -397,36 +394,16 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
                 compareButton.setEnabled(false);
             }
 
-            // Update game count and list
-            List<Game> games = user.getLibrary();
-            gameCountLabel.setText("Games: " + (games != null ? games.size() : 0));
+        // Update game count and list
+        gameCountLabel.setText("Games: " + (!state.getGameLabels().isEmpty() ? state.getGameLabels().size() : 0));
 
-            if (games != null && !games.isEmpty()) {
-                JLabel[] gameNames = new JLabel[games.size()];
-                for (int i = 0; i < games.size(); ++i) {
-                    Game g = games.get(i);
-                    JLabel label = new JLabel();
-                    label.setIcon(g.getImage());
-                    label.setText(g.getTitle());
-                    gameNames[i] = label;
-                }
-                gameList.setListData(gameNames);
-            } else {
-                gameList.setListData(new JLabel[] { new JLabel("No games found") });
-            }
-
-            profilePicture.setIcon(user.getImage());
+        if (!state.getGameLabels().isEmpty()) {
+            gameList.setListData(state.getGameLabels().toArray(new JLabel[0]));
+        } else {
+            gameList.setListData(new JLabel[] { new JLabel("No games found") });
         }
-    }
 
-    /**
-     * Updates the user data.
-     *
-     * @param user The updated user
-     */
-    public void setUser(User user) {
-        this.user = user;
-        updateUserInfo();
+        profilePicture.setIcon(state.getProfilePicture().getIcon());
     }
 
     @Override
@@ -437,7 +414,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         final LoggedinState state = (LoggedinState) evt.getNewValue();
-        if (state.getUser() == null || !state.getError().isEmpty()) {
+        if (!state.getError().isEmpty()) {
             JOptionPane.showMessageDialog(
                 LoggedinView.this,
                 state.getError(),
@@ -447,7 +424,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
             return;
         }
 
-        setUser(state.getUser());
+        updateUserInfo(state);
     }
 
     public String getViewName() {

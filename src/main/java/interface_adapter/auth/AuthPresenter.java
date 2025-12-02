@@ -5,7 +5,6 @@ import use_case.auth.AuthOutputData;
 import interface_adapter.ViewManagerModel;
 import interface_adapter.loggedin.LoggedinState;
 import interface_adapter.loggedin.LoggedinViewModel;
-import entity.User;
 
 public class AuthPresenter implements AuthOutputBoundary {
     private final AuthViewModel authViewModel;
@@ -20,10 +19,12 @@ public class AuthPresenter implements AuthOutputBoundary {
 
     @Override
     public void prepareSuccessView(AuthOutputData outputData) {
-        User user = outputData.getUser();
-        LoggedinState state = this.loggedinViewModel.getState();       
-        state.setUser(user);
-        state.setError("");
+        LoggedinState state = loggedinViewModel.getState();
+        state.setName(outputData.getName());
+        state.setProfilePicture(outputData.getProfilePicture());
+        state.setId(outputData.getId());
+        state.setFriendLabels(outputData.getFriendLabels());
+        state.setGameLabels(outputData.getGameLabels());
         this.loggedinViewModel.firePropertyChange();
 
         this.authViewModel.setState(new AuthState());

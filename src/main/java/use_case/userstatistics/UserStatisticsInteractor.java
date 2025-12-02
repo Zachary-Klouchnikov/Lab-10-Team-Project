@@ -18,6 +18,11 @@ public class UserStatisticsInteractor implements UserStatisticsInputBoundary {
     @Override
     public void execute(UserStatisticsInputData inputData) {
         try {
+            if (inputData == null) {
+                outputBoundary.prepareFailureView("No input provided");
+                return;
+            }
+
             User user = inputData.getUser();
             if (user == null) {
                 outputBoundary.prepareFailureView("User not found");

@@ -1,7 +1,7 @@
 package use_case.refresh;
 
-import entity.User;
+import interface_adapter.loggedin.LoggedinState;
 
 public interface RefreshInputBoundary {
-    public void execute(User user);
+    public void execute(LoggedinState state);
 }

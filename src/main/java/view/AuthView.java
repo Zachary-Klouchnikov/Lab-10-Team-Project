@@ -1,9 +1,5 @@
 package view;
 
-import entity.SessionManager;
-import data_access.AuthDataAccessObject;
-import data_access.UserDataAccessObject;
-import entity.User;
 import interface_adapter.auth.AuthController;
 import interface_adapter.auth.AuthState;
 import interface_adapter.auth.AuthViewModel;
