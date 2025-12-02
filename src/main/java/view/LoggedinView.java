@@ -6,11 +6,13 @@ import interface_adapter.loggedin.LoggedinState;
 import interface_adapter.logout.LogoutController;
 import interface_adapter.loggedin.LoggedinViewModel;
 import interface_adapter.loggedin.RefreshController;
+import interface_adapter.compareusers.CompareUsersController;
 
 import javax.swing.*;
 
 import data_access.ImageDataAccessObject;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -39,6 +41,8 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
 
     private LogoutController logoutController = null;
     private RefreshController refreshController = null;
+    private CompareUsersController compareUsersController = null;
+    private List<User> friends = new ArrayList<>();
 
     public LoggedinView(LoggedinViewModel loggedinViewModel) {
         this.loggedinViewModel = loggedinViewModel;
@@ -219,11 +223,12 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         friendList.setForeground(Color.WHITE);
         friendList.setFont(new Font("Arial", Font.PLAIN, 12));
         friendList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        friendList.addListSelectionListener(e -> updateCompareEnabled());
         friendList.setCellRenderer(new ListCellRenderer<JLabel>() {
             private final JLabel label = new JLabel();
             @Override
             public Component getListCellRendererComponent(
-                JList<? extends JLabel> list, 
+                JList<? extends JLabel> list,
                 JLabel value, 
                 int index, 
                 boolean isSelected, 
@@ -266,12 +271,25 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         gbc.gridwidth = 1;
         friendPanel.add(friendCountLabel, gbc);
 
-        // Compare Button.
+        // Compare Button uses selection from the list.
         compareButton = createButton("Compare", new Color(0, 200, 83));
         compareButton.addActionListener(e -> {
-            System.err.println("TODO: Implement Compare View!");
+            int idx = friendList.getSelectedIndex();
+            if (idx < 0 || idx >= friends.size()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Please select a friend to compare.",
+                        "No friend selected",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+            User selected = friends.get(idx);
+            if (compareUsersController != null) {
+                compareUsersController.compare(this.user, selected);
+            }
         });
-        gbc.gridy = 2;
+        gbc.gridy = 3;
         gbc.gridwidth = 1;
         gbc.anchor = GridBagConstraints.EAST;
         friendPanel.add(compareButton, gbc);
@@ -358,10 +376,11 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
             steamIdLabel.setText("Steam ID: " + user.getId());
 
             // Update friend count
-            List<User> friends = user.getFriends();
-            friendCountLabel.setText("Friends: " + (friends != null ? friends.size() : 0));
-            
-            if (friends != null && !friends.isEmpty()) {
+            List<User> userFriends = user.getFriends();
+            friendCountLabel.setText("Friends: " + (userFriends != null ? userFriends.size() : 0));
+            friends = userFriends != null ? userFriends : new ArrayList<>();
+
+            if (!friends.isEmpty()) {
                 JLabel[] friendLabels = new JLabel[friends.size()];
                 for (int i = 0; i < friends.size(); ++i) {
                     User f = friends.get(i);
@@ -371,8 +390,11 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
                     friendLabels[i] = label;
                 }
                 friendList.setListData(friendLabels);
+                friendList.setSelectedIndex(0);
+                updateCompareEnabled();
             } else {
                 friendList.setListData(new JLabel[] { new JLabel("No friends found") });
+                compareButton.setEnabled(false);
             }
 
             // Update game count and list
@@ -438,5 +460,13 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
 
     public void setRefreshController(RefreshController refreshController) {
         this.refreshController = refreshController;
+    }
+
+    public void setCompareUsersController(CompareUsersController compareUsersController) {
+        this.compareUsersController = compareUsersController;
+    }
+
+    private void updateCompareEnabled() {
+        compareButton.setEnabled(!friends.isEmpty() && friendList.getSelectedIndex() >= 0);
     }
 }
