@@ -22,4 +22,8 @@ public class ReviewInteractor implements ReviewInputBoundary {
         ArrayList<String> lst = reviewDAO.ReviewDisplay(user);
         reviewOutputBoundary.prepareSuccessView(lst);
     }
+    @Override
+    public void backToLoggedIn(User user) {
+        reviewOutputBoundary.presentLoggedIn(user);
+    }
 }

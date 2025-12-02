@@ -79,7 +79,7 @@ public class AppBuilder {
     }
 
     public AppBuilder addReviewUseCase() {
-        final ReviewOutputBoundary outputBoundary = new ReviewPresenter(reviewViewModel, viewManagerModel);
+        final ReviewOutputBoundary outputBoundary = new ReviewPresenter(reviewViewModel, viewManagerModel, loggedinModel);
         final ReviewInputBoundary inputBoundary = new ReviewInteractor(outputBoundary);
         ReviewController reviewController = new ReviewController(inputBoundary);
         loggedin.setReviewController(reviewController);

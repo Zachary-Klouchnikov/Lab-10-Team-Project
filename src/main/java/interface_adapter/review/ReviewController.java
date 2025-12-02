@@ -15,4 +15,8 @@ public class ReviewController {
     public void execute(User user) {
         this.reviewInputBoundary.execute(user);
     }
+
+    public void backToLoggedIn(User loggedInUser) {
+        reviewInputBoundary.backToLoggedIn(loggedInUser);
+    }
 }
