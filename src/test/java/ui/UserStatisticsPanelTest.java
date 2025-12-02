@@ -1,6 +1,9 @@
 package ui;
 
 import org.junit.jupiter.api.Test;
+
+import javax.swing.*;
+import java.util.ArrayList;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -174,4 +177,70 @@ class UserStatisticsPanelTest {
         assertNotNull(withHours);
         assertNotNull(noHours);
     }
+
+    @Test
+    void testMostPlayedNullBranch() {
+        // User with a normal, non-null empty library — safe for constructor
+        ui.UserStatisticsPanel p = new ui.UserStatisticsPanel(makeUser(List.of()));
+
+        // Create a list of null games ONLY for the UI method (not for User)
+        List<entity.Game> nullList = new ArrayList<>();
+        nullList.add(null);
+        nullList.add(null);
+
+        JPanel panel = p.createMostPlayedPanel(nullList, 0);
+
+        assertNotNull(panel);
+    }
+
+
+    @Test
+    void testNullGamesAcrossPanels() {
+        ui.UserStatisticsPanel p = new ui.UserStatisticsPanel(makeUser(List.of()));
+
+        assertNotNull(p.createPlaytimeDistributionPanel(null));
+        assertNotNull(p.createTopFiveGamesPanel(null));
+        assertNotNull(p.createMostPlayedPanel(null, 0));
+        assertNotNull(p.createRecentlyPlayedPanel(null));
+    }
+
+    @Test
+    void testRecentlyPlayedBranchCoverage() {
+        ui.UserStatisticsPanel p = new ui.UserStatisticsPanel(makeUser(new ArrayList<>()));
+
+        // <2
+        List<entity.Game> g1 = List.of(game("A",0,60));
+        assertNotNull(p.createRecentlyPlayedPanel(g1));
+
+        // <5
+        List<entity.Game> g2 = List.of(game("B",0,200));
+        assertNotNull(p.createRecentlyPlayedPanel(g2));
+
+        // <15
+        List<entity.Game> g3 = List.of(game("C",0,600));
+        assertNotNull(p.createRecentlyPlayedPanel(g3));
+
+        // <60
+        List<entity.Game> g4 = List.of(game("D",0,3000));
+        assertNotNull(p.createRecentlyPlayedPanel(g4));
+
+        // >=60 (the ELSE branch)
+        List<entity.Game> g5 = List.of(game("E",0,6000));
+        assertNotNull(p.createRecentlyPlayedPanel(g5));
+    }
+
+
+    @Test
+    void testOldFavoritesAtCapacity() {
+        List<entity.Game> games = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            games.add(game("Fav"+i, 3000, 0)); // 50 hours
+        }
+
+        ui.UserStatisticsPanel p = new ui.UserStatisticsPanel(makeUser(games));
+        JPanel panel = p.createOldFavoritesAndUnplayedGamesPanel(games);
+
+        assertTrue(panel.getComponentCount() > 0);
+    }
+
 }
