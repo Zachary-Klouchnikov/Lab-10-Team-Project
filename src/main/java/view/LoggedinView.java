@@ -42,7 +42,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
     private JButton compareButton;
     private JButton reviewButton;
 
-    private Map<Icon, Game> gameLookup = new HashMap<>();
+    private Map<JLabel, Game> gameLookup = new HashMap<>();
 
     private LaunchController launchController = null;
     private LogoutController logoutController = null;
@@ -418,16 +418,16 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         gameLookup.clear();
 
         if (!gameLabels.isEmpty()) {
-            for (int i = 0; i < games.size(); ++i) {
-                Game g = games.get(i);
-                Icon label = new Icon();
+            for (Game g : games) {
+                JLabel label = new JLabel();
+
                 label.setIcon(g.getImage());
                 label.setText(g.getTitle());
-                gameNames[i] = label;
+
+                gameLabels.add(label);
                 gameLookup.put(label, g);
             }
             gameList.setListData(gameLabels.toArray(new JLabel[0]));
-            gameLookup.put(label, g);
         } else {
             gameList.setListData(new JLabel[] { new JLabel("No games found") });
         }
