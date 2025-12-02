@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +24,12 @@ public class LocalCallbackServer {
     private HttpServer server;
     private CompletableFuture<Map<String, String>> callbackFuture;
     private final int port;
+    private int actualPort;
+
+    /**
+     * Result of starting the server with port retry.
+     */
+    public record StartResult(CompletableFuture<Map<String, String>> future, int actualPort) {}
 
     /**
      * Creates a new LocalCallbackServer on the specified port.
@@ -54,6 +61,49 @@ public class LocalCallbackServer {
         System.out.println("Callback server started on http://localhost:" + port + "/callback");
 
         return callbackFuture;
+    }
+
+    /**
+     * Starts the HTTP server with port retry logic.
+     * Tries successive ports if the initial port is busy.
+     *
+     * @param maxRetries Maximum number of additional ports to try
+     * @return StartResult containing the future and the actual port used
+     * @throws IOException if no available port is found after all retries
+     */
+    public StartResult startWithPortRetry(int maxRetries) throws IOException {
+        this.callbackFuture = new CompletableFuture<>();
+        int currentPort = this.port;
+
+        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                server = HttpServer.create(new InetSocketAddress("127.0.0.1", currentPort), 0);
+                server.setExecutor(Executors.newSingleThreadExecutor());
+                server.createContext("/callback", new CallbackHandler());
+                server.start();
+                this.actualPort = currentPort;
+                System.out.println("Callback server started on http://localhost:" + currentPort + "/callback");
+                return new StartResult(callbackFuture, currentPort);
+            } catch (BindException e) {
+                if (attempt == maxRetries) {
+                    throw new IOException(
+                        "Could not find available port after trying ports " + this.port + "-" + currentPort, e);
+                }
+                System.out.println("Port " + currentPort + " is busy, trying " + (currentPort + 1));
+                currentPort++;
+            }
+        }
+        // This should never be reached due to the throw in the loop
+        throw new IOException("Could not start server");
+    }
+
+    /**
+     * Gets the actual port the server is running on.
+     *
+     * @return The actual port, or the configured port if server hasn't started
+     */
+    public int getActualPort() {
+        return actualPort > 0 ? actualPort : port;
     }
 
     /**

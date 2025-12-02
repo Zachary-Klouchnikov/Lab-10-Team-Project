@@ -57,22 +57,25 @@ public class AuthDataAccessObject implements AuthDataAccessInterface {
     public CompletableFuture<Long> authenticate() throws SteamAuthException {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // Start the callback server
+                // Start the callback server with port retry
                 callbackServer = new LocalCallbackServer(callbackPort);
-                CompletableFuture<Map<String, String>> callbackFuture;
+                LocalCallbackServer.StartResult startResult;
 
                 try {
-                    callbackFuture = callbackServer.start();
+                    startResult = callbackServer.startWithPortRetry(10);
                 } catch (IOException e) {
                     throw new SteamAuthException(
                         SteamAuthException.ErrorType.SERVER_START_FAILED,
-                        "Failed to start callback server on port " + callbackPort + ": " + e.getMessage(),
+                        "Failed to start callback server: " + e.getMessage(),
                         e
                     );
                 }
 
-                // Build and open the authentication URL
-                String authUrl = buildAuthenticationUrl();
+                CompletableFuture<Map<String, String>> callbackFuture = startResult.future();
+                int actualPort = startResult.actualPort();
+
+                // Build and open the authentication URL using the actual port
+                String authUrl = buildAuthenticationUrl(actualPort);
 
                 try {
                     openInBrowser(authUrl);
@@ -160,11 +163,12 @@ public class AuthDataAccessObject implements AuthDataAccessInterface {
     /**
      * Builds the Steam OpenID authentication URL.
      *
+     * @param port The port to use for the callback URL
      * @return The authentication URL
      */
-    private String buildAuthenticationUrl() {
-        String returnUrl = "http://localhost:" + callbackPort + "/callback";
-        String realm = "http://localhost:" + callbackPort;
+    private String buildAuthenticationUrl(int port) {
+        String returnUrl = "http://localhost:" + port + "/callback";
+        String realm = "http://localhost:" + port;
 
         return STEAM_OPENID_URL + "?" +
                 "openid.ns=" + encode("http://specs.openid.net/auth/2.0") +

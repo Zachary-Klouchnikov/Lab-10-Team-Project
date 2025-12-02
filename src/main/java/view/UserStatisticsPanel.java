@@ -1,70 +1,189 @@
 package view;
 
-import java.util.*;
-
 import entity.User;
-import entity.Game;
+import interface_adapter.userstatistics.UserStatisticsController;
+import interface_adapter.userstatistics.UserStatisticsPresenter;
+import interface_adapter.userstatistics.UserStatisticsState;
+import interface_adapter.userstatistics.UserStatisticsViewModel;
+import use_case.userstatistics.UserStatisticsInputBoundary;
+import use_case.userstatistics.UserStatisticsInteractor;
+import use_case.userstatistics.UserStatisticsOutputBoundary;
+import use_case.userstatistics.UserStatisticsOutputData;
+import use_case.userstatistics.UserStatisticsOutputData.GameStatData;
+import use_case.userstatistics.UserStatisticsOutputData.PlaytimePoint;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.List;
 
-
-// TODO : Java throws error when trying to use org.free.chart.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-
-import java.awt.*;
-
-import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PiePlot;
 import org.jfree.chart.plot.PlotOrientation;
-
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.renderer.xy.XYShapeRenderer;
-
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import java.awt.geom.Ellipse2D;
+public class UserStatisticsPanel extends JPanel implements PropertyChangeListener {
+    private final Color bgColor = new Color(42, 42, 42);
+    private final Color textColor = Color.LIGHT_GRAY;
 
-import org.jfree.chart.plot.PiePlot;
-import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.renderer.category.BarRenderer;
-import org.jfree.chart.renderer.category.StandardBarPainter;
+    private UserStatisticsViewModel viewModel;
+    private UserStatisticsController controller;
+    private JPanel statsContainer;
 
+    /**
+     * Factory method to create a fully-wired UserStatisticsPanel for a given user.
+     * Creates the complete Clean Architecture stack and immediately loads statistics.
+     *
+     * @param user The user to display statistics for
+     * @return A fully configured UserStatisticsPanel
+     */
+    public static UserStatisticsPanel createForUser(User user) {
+        UserStatisticsViewModel viewModel = new UserStatisticsViewModel();
+        UserStatisticsOutputBoundary presenter = new UserStatisticsPresenter(viewModel);
+        UserStatisticsInputBoundary interactor = new UserStatisticsInteractor(presenter);
+        UserStatisticsController controller = new UserStatisticsController(interactor);
 
-import java.util.List;
+        UserStatisticsPanel panel = new UserStatisticsPanel(viewModel);
+        panel.setController(controller);
+        controller.loadStatistics(user);
 
-public class UserStatisticsPanel extends JPanel {
-    private final User user;
-    private final Color bgColor;
-    private final Color fgColor;
-    private final Color textColor;
+        return panel;
+    }
 
-    public UserStatisticsPanel(User user) {
-        this.bgColor = new Color(42, 42, 42);
-        this.fgColor = Color.LIGHT_GRAY;
-        this.textColor = Color.LIGHT_GRAY;
-
-        this.user = user;
+    public UserStatisticsPanel(UserStatisticsViewModel viewModel) {
+        this.viewModel = viewModel;
+        this.viewModel.addPropertyChangeListener(this);
         initUI();
     }
 
-    private void initUI() {
+    public void setController(UserStatisticsController controller) {
+        this.controller = controller;
+    }
 
+    public UserStatisticsController getController() {
+        return controller;
+    }
+
+    private void initUI() {
         setBackground(bgColor);
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
-        JLabel nameLabel = new JLabel(user.getUsername());
+        statsContainer = new JPanel();
+        statsContainer.setOpaque(false);
+        statsContainer.setLayout(new BoxLayout(statsContainer, BoxLayout.Y_AXIS));
+        add(statsContainer, BorderLayout.CENTER);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        UserStatisticsState state = viewModel.getState();
+
+        if (!state.getErrorMessage().isEmpty()) {
+            showError(state.getErrorMessage());
+            return;
+        }
+
+        if (state.getStatistics() != null) {
+            renderStatistics(state.getStatistics());
+        }
+    }
+
+    private void showError(String message) {
+        statsContainer.removeAll();
+        JLabel errorLabel = new JLabel("Error: " + message);
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        statsContainer.add(errorLabel);
+        statsContainer.revalidate();
+        statsContainer.repaint();
+    }
+
+    private void renderStatistics(UserStatisticsOutputData stats) {
+        statsContainer.removeAll();
+
+        // Header panel
+        statsContainer.add(createHeaderPanel(stats));
+
+        // Total playtime panel
+        statsContainer.add(createTotalPlaytimePanel(stats.getTotalPlaytimeHours(), stats.getTotalPlaytimeMessage()));
+
+        // Most played panel
+        if (stats.getMostPlayedGame() != null) {
+            statsContainer.add(createMostPlayedPanel(stats.getMostPlayedGame(), stats.getTotalPlaytimeHours(), stats.getMostPlayedMessage()));
+        }
+
+        // Top 5 games
+        if (stats.getTopFiveGames() != null && !stats.getTopFiveGames().isEmpty()) {
+            statsContainer.add(createTopFiveGamesPanel(stats.getTopFiveGames()));
+        }
+
+        // Playtime distribution
+        if (stats.getPlaytimeDistributionCounts() != null) {
+            statsContainer.add(createPlaytimeDistributionPanel(stats.getPlaytimeDistributionCounts(), stats.getPlaytimeDistributionLabels()));
+        }
+
+        // Recently played
+        if (stats.getMostRecentGame() != null) {
+            statsContainer.add(createRecentlyPlayedPanel(stats.getMostRecentGame(), stats.getTotalRecentPlaytimeMinutes(), stats.getRecentPlaytimeMessage()));
+        }
+
+        // Top 5 recent games
+        if (stats.getTopFiveRecentGames() != null && !stats.getTopFiveRecentGames().isEmpty()) {
+            statsContainer.add(createTopFiveRecentGamesPanel(stats.getTopFiveRecentGames()));
+        }
+
+        // Scatter plot
+        if (stats.getScatterPlotData() != null && !stats.getScatterPlotData().isEmpty()) {
+            statsContainer.add(createScatterPlaytimeVsRecentPanel(stats.getScatterPlotData()));
+        }
+
+        // Old favorites & unplayed games
+        statsContainer.add(createOldFavoritesAndUnplayedGamesPanel(stats.getOldFavorites(), stats.getUnplayedGames()));
+
+        // Footer
+        JLabel footerLabel = new JLabel("Detailed stats coming soon…");
+        footerLabel.setForeground(bgColor);
+        footerLabel.setFont(footerLabel.getFont().deriveFont(Font.ITALIC, 11f));
+        JPanel footerPanel = new JPanel(new BorderLayout());
+        footerPanel.setOpaque(false);
+        footerPanel.add(footerLabel, BorderLayout.WEST);
+        statsContainer.add(footerPanel);
+
+        statsContainer.revalidate();
+        statsContainer.repaint();
+    }
+
+    private JPanel createHeaderPanel(UserStatisticsOutputData stats) {
+        JLabel nameLabel = new JLabel(stats.getUsername());
         nameLabel.setForeground(Color.WHITE);
         nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD, 20f));
 
-        JLabel idLabel = new JLabel("Steam ID: " + user.getId());
+        JLabel idLabel = new JLabel("Steam ID: " + stats.getSteamId());
         idLabel.setForeground(Color.LIGHT_GRAY);
         idLabel.setFont(idLabel.getFont().deriveFont(Font.PLAIN, 12f));
 
-        JLabel imgLabel = new JLabel(user.getImage());
+        JLabel imgLabel = new JLabel(stats.getProfileImage());
+
+        if (stats.getProfileImage() instanceof ImageIcon) {
+            ImageIcon icon = (ImageIcon) stats.getProfileImage();
+            int targetHeight = nameLabel.getPreferredSize().height + idLabel.getPreferredSize().height + 4;
+            int targetWidth = icon.getIconWidth() * targetHeight / icon.getIconHeight();
+            Image scaled = icon.getImage().getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
+            imgLabel.setIcon(new ImageIcon(scaled));
+        }
 
         JPanel textPanel = new JPanel();
         textPanel.setOpaque(false);
@@ -78,48 +197,10 @@ public class UserStatisticsPanel extends JPanel {
         headerPanel.add(textPanel, BorderLayout.WEST);
         headerPanel.add(imgLabel, BorderLayout.EAST);
 
-        add(headerPanel, BorderLayout.NORTH);
-
-        JPanel statsPanel = new JPanel();
-        statsPanel.setOpaque(false);
-        statsPanel.setLayout(new BoxLayout(statsPanel, BoxLayout.Y_AXIS));
-
-        int totalPlaytime = 0;
-        for (Game game : user.getLibrary()){
-            totalPlaytime += game.getPlaytime();
-        }
-        totalPlaytime = totalPlaytime / 60;
-
-        statsPanel.add(createTotalPlaytimePanel(totalPlaytime));
-
-        statsPanel.add(createMostPlayedPanel(user.getLibrary(), totalPlaytime));
-
-        statsPanel.add(createTopFiveGamesPanel(user.getLibrary()));
-
-        statsPanel.add(createPlaytimeDistributionPanel(user.getLibrary()));
-
-        statsPanel.add(createRecentlyPlayedPanel(user.getLibrary()));
-
-        statsPanel.add(createTopFiveRecentGamesPanel(user.getLibrary()));
-
-        statsPanel.add(createScatterPlaytimeVsRecentPanel(user.getLibrary()));
-
-        statsPanel.add(createOldFavoritesAndUnplayedGamesPanel(user.getLibrary()));
-
-        add(statsPanel, BorderLayout.CENTER);
-
-        JLabel footerLabel = new JLabel("Detailed stats coming soon…");
-        footerLabel.setForeground(bgColor);
-        footerLabel.setFont(footerLabel.getFont().deriveFont(Font.ITALIC, 11f));
-
-        JPanel footerPanel = new JPanel(new BorderLayout());
-        footerPanel.setOpaque(false);
-        footerPanel.add(footerLabel, BorderLayout.WEST);
-
-        add(footerPanel, BorderLayout.SOUTH);
+        return headerPanel;
     }
 
-    JPanel createTotalPlaytimePanel(int totalPlaytime) {
+    private JPanel createTotalPlaytimePanel(int totalPlaytime, String message) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -154,19 +235,7 @@ public class UserStatisticsPanel extends JPanel {
         hoursLabel.setPreferredSize(hoursLabel.getPreferredSize());
 
         panel.add(hoursLabel);
-
         panel.add(Box.createVerticalStrut(12));
-
-        String message;
-        if (totalPlaytime < 10) {
-            message = "New account?";
-        } else if (totalPlaytime < 100) {
-            message = "Getting into gaming...";
-        } else if (totalPlaytime < 500) {
-            message = "Gaming as a hobby.";
-        } else {
-            message = "We have a true Gamer in our midst...";
-        }
 
         JLabel footer = new JLabel(message, SwingConstants.CENTER);
         footer.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -181,7 +250,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    JPanel createMostPlayedPanel(List<Game> games, int totalPlaytime) {
+    private JPanel createMostPlayedPanel(GameStatData mostPlayed, int totalPlaytime, String message) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -196,27 +265,6 @@ public class UserStatisticsPanel extends JPanel {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
         panel.add(title);
         panel.add(Box.createVerticalStrut(10));
-
-        if (games == null || games.isEmpty()) {
-            JLabel none = new JLabel("No Data");
-            none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(Color.LIGHT_GRAY);
-            panel.add(none);
-            return panel;
-        }
-
-        Game mostPlayed = games.stream()
-                .filter(Objects::nonNull)
-                .max(Comparator.comparingLong(Game::getPlaytime))
-                .orElse(null);
-
-        if (mostPlayed == null) {
-            JLabel none = new JLabel("No Data");
-            none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(bgColor);
-            panel.add(none);
-            return panel;
-        }
 
         JPanel contentRow = new JPanel();
         contentRow.setOpaque(false);
@@ -233,7 +281,7 @@ public class UserStatisticsPanel extends JPanel {
         leftContent.add(gameName);
         leftContent.add(Box.createVerticalStrut(6));
 
-        int hours = mostPlayed.getPlaytime() / 60;
+        int hours = mostPlayed.getPlaytimeHours();
 
         JLabel playtime = new JLabel(hours + " hrs", SwingConstants.CENTER);
         playtime.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -246,18 +294,7 @@ public class UserStatisticsPanel extends JPanel {
         contentRow.add(new JLabel(mostPlayed.getImage()), BorderLayout.EAST);
 
         panel.add(contentRow);
-        panel.add(wrapChart(createMostPlayedChart(hours, totalPlaytime - hours, mostPlayed.getTitle())));
-
-        String message;
-        if (hours < 3) {
-            message = "Still enough time for a refund.";
-        } else if (hours < 100) {
-            message = "I can see it's a favourite.";
-        } else if (hours < 200) {
-            message = "Getting really into this game, huh?";
-        } else {
-            message = "You must really love this game...";
-        }
+        panel.add(wrapChart(createPieChart(hours, totalPlaytime - hours, mostPlayed.getTitle())));
 
         JLabel footer = new JLabel(message, SwingConstants.CENTER);
         footer.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -276,8 +313,7 @@ public class UserStatisticsPanel extends JPanel {
         return wrapper;
     }
 
-    JPanel createTopFiveGamesPanel(List<Game> games) {
-
+    private JPanel createTopFiveGamesPanel(List<GameStatData> topFive) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -293,35 +329,14 @@ public class UserStatisticsPanel extends JPanel {
         panel.add(title);
         panel.add(Box.createVerticalStrut(10));
 
-        if (games == null || games.isEmpty()) {
-            JLabel none = new JLabel("No Data");
-            none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(Color.LIGHT_GRAY);
-            panel.add(none);
-            return panel;
-        }
-
-        List<Game> top = games.stream()
-                .filter(Objects::nonNull)
-                .sorted(Comparator.comparingInt(Game::getPlaytime).reversed())
-                .limit(5)
-                .toList();
-
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        for (Game g : top) {
-            int hours = g.getPlaytime() / 60;
-            dataset.addValue(hours, "Playtime (hrs)", g.getTitle());
+        for (GameStatData g : topFive) {
+            dataset.addValue(g.getPlaytimeHours(), "Playtime (hrs)", g.getTitle());
         }
 
         JFreeChart chart = ChartFactory.createBarChart(
-                null,
-                "Game",
-                "Hours",
-                dataset,
-                PlotOrientation.VERTICAL,
-                false,
-                true,
-                false
+                null, "Game", "Hours", dataset,
+                PlotOrientation.VERTICAL, false, true, false
         );
 
         chart.setBackgroundPaint(bgColor);
@@ -363,30 +378,23 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    ChartPanel createMostPlayedChart(int small, int big, String label) {
-
+    private ChartPanel createPieChart(int small, int big, String label) {
         DefaultPieDataset dataset = new DefaultPieDataset();
         dataset.setValue(label, small);
         dataset.setValue("other games", big);
 
         JFreeChart chart = ChartFactory.createPieChart(
                 label + " as a proportion of total playtime",
-                dataset,
-                false,
-                true,
-                false
+                dataset, false, true, false
         );
 
         chart.getTitle().setPaint(Color.WHITE);
-
         chart.setBackgroundPaint(bgColor);
         PiePlot plot = (PiePlot) chart.getPlot();
         plot.setBackgroundPaint(bgColor);
-
         plot.setOutlineVisible(false);
 
         ChartPanel panel = new ChartPanel(chart);
-
         panel.setPreferredSize(null);
         panel.setMaximumDrawWidth(Integer.MAX_VALUE);
         panel.setMaximumDrawHeight(Integer.MAX_VALUE);
@@ -397,8 +405,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    JPanel createPlaytimeDistributionPanel(List<Game> games) {
-
+    private JPanel createPlaytimeDistributionPanel(int[] counts, String[] labels) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -414,49 +421,15 @@ public class UserStatisticsPanel extends JPanel {
         panel.add(title);
         panel.add(Box.createVerticalStrut(10));
 
-        if (games == null || games.isEmpty()) {
-            JLabel none = new JLabel("No Data");
-            none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(Color.LIGHT_GRAY);
-            panel.add(none);
-            return panel;
-        }
-
-        int[] bins = new int[] {5, 15, 30, 60, 150};
-        int[] counts = new int[bins.length + 1];
-
-        for (Game g : games) {
-            int hours = g.getPlaytime() / 60;
-
-            int binIndex = 0;
-            while (binIndex < bins.length && hours > bins[binIndex])
-                binIndex++;
-
-            counts[binIndex]++;
-        }
-
-
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-
         String series = "Games";
-
-        int lower = 0;
-        for (int i = 0; i < bins.length; i++) {
-            String label = lower + "–" + bins[i] + " hrs";
-            dataset.addValue(counts[i], series, label);
-            lower = bins[i];
+        for (int i = 0; i < counts.length && i < labels.length; i++) {
+            dataset.addValue(counts[i], series, labels[i]);
         }
-        dataset.addValue(counts[bins.length], series, "150+ hrs");
 
         JFreeChart chart = ChartFactory.createBarChart(
-                null,
-                "Playtime Range",
-                "Games",
-                dataset,
-                PlotOrientation.VERTICAL,
-                false,
-                true,
-                false
+                null, "Playtime Range", "Games", dataset,
+                PlotOrientation.VERTICAL, false, true, false
         );
 
         chart.setBackgroundPaint(bgColor);
@@ -499,7 +472,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    JPanel createRecentlyPlayedPanel(List<Game> games){
+    private JPanel createRecentlyPlayedPanel(GameStatData mostRecent, int totalRecentMinutes, String message) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -515,22 +488,6 @@ public class UserStatisticsPanel extends JPanel {
         panel.add(title);
         panel.add(Box.createVerticalStrut(10));
 
-        if (games == null || games.isEmpty()) {
-            JLabel none = new JLabel("No Data");
-            none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(Color.LIGHT_GRAY);
-            panel.add(none);
-            return panel;
-        }
-
-
-        Game recentlyPlayed = games.getFirst();
-        for (Game g : games) {
-            if (g.getRecentPlaytime() > recentlyPlayed.getRecentPlaytime()){
-                recentlyPlayed = g;
-            }
-        }
-
         JPanel contentRow = new JPanel();
         contentRow.setOpaque(false);
         contentRow.setLayout(new BoxLayout(contentRow, BoxLayout.X_AXIS));
@@ -539,14 +496,14 @@ public class UserStatisticsPanel extends JPanel {
         leftContent.setOpaque(false);
         leftContent.setLayout(new BoxLayout(leftContent, BoxLayout.Y_AXIS));
 
-        JLabel gameName = new JLabel(recentlyPlayed.getTitle(), SwingConstants.CENTER);
+        JLabel gameName = new JLabel(mostRecent.getTitle(), SwingConstants.CENTER);
         gameName.setAlignmentX(Component.CENTER_ALIGNMENT);
         gameName.setForeground(Color.LIGHT_GRAY);
         gameName.setFont(gameName.getFont().deriveFont(Font.BOLD, 18f));
         leftContent.add(gameName);
         leftContent.add(Box.createVerticalStrut(6));
 
-        int hours = recentlyPlayed.getRecentPlaytime() / 60;
+        int hours = mostRecent.getRecentPlaytimeHours();
 
         JLabel playtime = new JLabel(hours + " hrs", SwingConstants.CENTER);
         playtime.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -556,29 +513,11 @@ public class UserStatisticsPanel extends JPanel {
         leftContent.add(Box.createVerticalStrut(10));
 
         contentRow.add(leftContent, BorderLayout.WEST);
-        contentRow.add(new JLabel(recentlyPlayed.getImage()));
+        contentRow.add(new JLabel(mostRecent.getImage()));
         panel.add(contentRow);
 
-        int totalRecentPlaytime = 0;
-        for (Game g : games) {
-            totalRecentPlaytime += g.getRecentPlaytime();
-        }
-        panel.add(wrapChart(createMostPlayedChart(recentlyPlayed.getRecentPlaytime(),
-                totalRecentPlaytime - recentlyPlayed.getRecentPlaytime(),
-                recentlyPlayed.getTitle())));
-
-        String message;
-        if (hours < 2){
-            message = "Just downloaded, huh?";
-        } else if (hours < 5) {
-            message = "Barely past the tutorial.";
-        } else if (hours < 15) {
-            message = "Story's getting good?";
-        } else if (hours < 60) {
-            message = "Finished the main story?";
-        } else {
-            message = "Do we have a trophy hunter?";
-        }
+        int recentMinutes = mostRecent.getRecentPlaytimeHours() * 60;
+        panel.add(wrapChart(createPieChart(recentMinutes, totalRecentMinutes - recentMinutes, mostRecent.getTitle())));
 
         JLabel footer = new JLabel(message, SwingConstants.CENTER);
         footer.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -593,8 +532,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    JPanel createTopFiveRecentGamesPanel(List<Game> games) {
-
+    private JPanel createTopFiveRecentGamesPanel(List<GameStatData> topFive) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -610,35 +548,14 @@ public class UserStatisticsPanel extends JPanel {
         panel.add(title);
         panel.add(Box.createVerticalStrut(10));
 
-        if (games == null || games.isEmpty()) {
-            JLabel none = new JLabel("No Data");
-            none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(Color.LIGHT_GRAY);
-            panel.add(none);
-            return panel;
-        }
-
-        List<Game> top = games.stream()
-                .filter(Objects::nonNull)
-                .sorted(Comparator.comparingInt(Game::getRecentPlaytime).reversed())
-                .limit(5)
-                .toList();
-
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        for (Game g : top) {
-            int hours = g.getRecentPlaytime() / 60;
-            dataset.addValue(hours, "Playtime (hrs)", g.getTitle());
+        for (GameStatData g : topFive) {
+            dataset.addValue(g.getRecentPlaytimeHours(), "Playtime (hrs)", g.getTitle());
         }
 
         JFreeChart chart = ChartFactory.createBarChart(
-                null,
-                "Game",
-                "Hours",
-                dataset,
-                PlotOrientation.VERTICAL,
-                false,
-                true,
-                false
+                null, "Game", "Hours", dataset,
+                PlotOrientation.VERTICAL, false, true, false
         );
 
         chart.setBackgroundPaint(bgColor);
@@ -680,8 +597,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    JPanel createScatterPlaytimeVsRecentPanel(List<Game> games) {
-
+    private JPanel createScatterPlaytimeVsRecentPanel(List<PlaytimePoint> scatterData) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -697,32 +613,16 @@ public class UserStatisticsPanel extends JPanel {
         panel.add(title);
         panel.add(Box.createVerticalStrut(10));
 
-        if (games == null || games.isEmpty()) {
-            JLabel none = new JLabel("No Data");
-            none.setAlignmentX(Component.CENTER_ALIGNMENT);
-            none.setForeground(Color.LIGHT_GRAY);
-            panel.add(none);
-            return panel;
-        }
-
         XYSeries series = new XYSeries("Games");
-        for (Game g : games) {
-            int total = g.getPlaytime() / 60;
-            int recent = g.getRecentPlaytime() / 60;
-            series.add(total, recent);
+        for (PlaytimePoint p : scatterData) {
+            series.add(p.getTotalHours(), p.getRecentHours());
         }
 
         XYSeriesCollection dataset = new XYSeriesCollection(series);
 
         JFreeChart chart = ChartFactory.createScatterPlot(
-                null,
-                "Total Playtime (hrs)",
-                "Recent Playtime (hrs)",
-                dataset,
-                PlotOrientation.VERTICAL,
-                false,
-                true,
-                false
+                null, "Total Playtime (hrs)", "Recent Playtime (hrs)",
+                dataset, PlotOrientation.VERTICAL, false, true, false
         );
 
         chart.setBackgroundPaint(bgColor);
@@ -734,10 +634,8 @@ public class UserStatisticsPanel extends JPanel {
         plot.setOutlineVisible(false);
 
         XYShapeRenderer renderer = new XYShapeRenderer();
-
         renderer.setSeriesShape(0, new Ellipse2D.Double(-3, -3, 6, 6));
         renderer.setSeriesPaint(0, new Color(80, 160, 220));
-
         plot.setRenderer(renderer);
 
         plot.getDomainAxis().setLabelPaint(Color.LIGHT_GRAY);
@@ -758,8 +656,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    JPanel createOldFavoritesAndUnplayedGamesPanel(List<Game> games) {
-
+    private JPanel createOldFavoritesAndUnplayedGamesPanel(List<GameStatData> oldFavorites, List<GameStatData> unplayedGames) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -768,13 +665,10 @@ public class UserStatisticsPanel extends JPanel {
                 BorderFactory.createEmptyBorder(12, 12, 12, 12)
         ));
 
-        // --- FIXED SIZE FOR THE CARD ---
         Dimension fixed = new Dimension(300, 220);
         panel.setPreferredSize(fixed);
         panel.setMinimumSize(fixed);
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 220));
-        // Maximum width allowed to stretch horizontally
-        // Height remains fixed; width grows under BoxLayout
 
         JLabel title = new JLabel("GAMES YOU SHOULD PLAY", SwingConstants.CENTER);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -783,27 +677,10 @@ public class UserStatisticsPanel extends JPanel {
         panel.add(title);
         panel.add(Box.createVerticalStrut(10));
 
-
-        List<Game> oldFavorites = new ArrayList<>();
-        for (Game g : games) {
-            int total = g.getPlaytime() / 60;
-            int recent = g.getRecentPlaytime() / 60;
-            if (total >= 50 && recent <= 1 && oldFavorites.size() < 5) {
-                oldFavorites.add(g);
-            }
-        }
-
-        List<Game> dead = new ArrayList<>();
-        for (Game g : games) {
-            if (g.getPlaytime() == 0 && dead.size() < 5) {
-                dead.add(g);
-            }
-        }
-
         JPanel columns = new JPanel(new GridLayout(1, 2, 12, 0));
         columns.setOpaque(false);
 
-
+        // Left column - Old Favorites
         JPanel left = new JPanel();
         left.setOpaque(false);
         left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
@@ -815,14 +692,14 @@ public class UserStatisticsPanel extends JPanel {
         left.add(leftTitle);
         left.add(Box.createVerticalStrut(4));
 
-        if (oldFavorites.isEmpty()) {
+        if (oldFavorites == null || oldFavorites.isEmpty()) {
             JLabel none = new JLabel("None found");
             none.setForeground(Color.LIGHT_GRAY);
             none.setAlignmentX(Component.CENTER_ALIGNMENT);
             left.add(none);
         } else {
-            for (Game g : oldFavorites) {
-                left.add(makeSmallGameLabel(g, false));
+            for (GameStatData g : oldFavorites) {
+                left.add(makeSmallGameLabel(g.getTitle(), g.getPlaytimeHours(), false));
                 left.add(Box.createVerticalStrut(3));
             }
         }
@@ -834,6 +711,7 @@ public class UserStatisticsPanel extends JPanel {
         left.add(Box.createVerticalStrut(8));
         left.add(leftFooter);
 
+        // Right column - Unplayed Games
         JPanel right = new JPanel();
         right.setOpaque(false);
         right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
@@ -845,14 +723,14 @@ public class UserStatisticsPanel extends JPanel {
         right.add(rightTitle);
         right.add(Box.createVerticalStrut(4));
 
-        if (dead.isEmpty()) {
+        if (unplayedGames == null || unplayedGames.isEmpty()) {
             JLabel none = new JLabel("None found");
             none.setForeground(Color.LIGHT_GRAY);
             none.setAlignmentX(Component.CENTER_ALIGNMENT);
             right.add(none);
         } else {
-            for (Game g : dead) {
-                right.add(makeSmallGameLabel(g, true));
+            for (GameStatData g : unplayedGames) {
+                left.add(makeSmallGameLabel(g.getTitle(), 0, true));
                 right.add(Box.createVerticalStrut(3));
             }
         }
@@ -864,7 +742,6 @@ public class UserStatisticsPanel extends JPanel {
         right.add(Box.createVerticalStrut(8));
         right.add(rightFooter);
 
-
         columns.add(left);
         columns.add(right);
         panel.add(columns);
@@ -872,22 +749,18 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    JPanel makeSmallGameLabel(Game g, boolean showHours) {
+    private JPanel makeSmallGameLabel(String title, int playtimeHours, boolean hideHours) {
         JPanel p = new JPanel(new BorderLayout());
         p.setOpaque(false);
 
-        JLabel name = new JLabel(g.getTitle());
+        JLabel name = new JLabel(title);
         name.setForeground(Color.LIGHT_GRAY);
         name.setFont(name.getFont().deriveFont(Font.PLAIN, 12f));
 
         p.add(name, BorderLayout.WEST);
 
-        String hrs = showHours
-                ? ""
-                : (g.getPlaytime() / 60) + " hrs";
-
-        if (!hrs.isBlank()) {
-            JLabel hrsLabel = new JLabel(hrs);
+        if (!hideHours) {
+            JLabel hrsLabel = new JLabel(playtimeHours + " hrs");
             hrsLabel.setForeground(Color.GRAY);
             hrsLabel.setFont(hrsLabel.getFont().deriveFont(11f));
             p.add(hrsLabel, BorderLayout.EAST);
@@ -895,5 +768,4 @@ public class UserStatisticsPanel extends JPanel {
 
         return p;
     }
-
 }
