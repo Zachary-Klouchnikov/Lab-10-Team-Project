@@ -30,7 +30,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
     private JButton logoutButton;
     private JButton refreshButton;
 
-    private JButton playButton;
+    private JButton launchButton;
     private JButton compareButton;
     private JButton reviewButton;
 
@@ -145,8 +145,8 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
             private final JLabel label = new JLabel();
             @Override
             public Component getListCellRendererComponent(
-                JList<? extends JLabel> list, 
-                JLabel value, 
+                JList<? extends JLabel> list,
+                JLabel value,
                 int index, 
                 boolean isSelected, 
                 boolean cellHasFocus) {
@@ -189,14 +189,14 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         gamePanel.add(gameCountLabel, gbc);
 
         // PlayButton.
-        playButton = createButton("Launch", new Color(0, 200, 83));
-        playButton.addActionListener(e -> {
-            System.err.println("TODO: Implement Launching games!");
+        launchButton = createButton("Launch", new Color(0, 200, 83));
+        launchButton.addActionListener(e -> {
+            System.err.println("TODO: Implement Launch View!");
         });
         gbc.gridy = 2;
         gbc.gridwidth = 1;
         gbc.anchor = GridBagConstraints.EAST;
-        gamePanel.add(playButton, gbc);
+        gamePanel.add(launchButton, gbc);
         gbc.anchor = GridBagConstraints.WEST;
 
         JPanel friendPanel = new JPanel(new GridBagLayout());
