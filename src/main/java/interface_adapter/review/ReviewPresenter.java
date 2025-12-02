@@ -29,10 +29,5 @@ public class ReviewPresenter implements ReviewOutputBoundary {
         frame.setSize(500, 400);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-
-        this.reviewViewModel.firePropertyChange();
-
-        this.viewManagerModel.setState(reviewViewModel.getViewName());
-        this.viewManagerModel.firePropertyChange();
     }
 }
