@@ -1,7 +1,7 @@
 package entity;
 import java.util.List;
 import data_access.ImageDataAccessObject;
-import javax.swing.JLabel;
+import javax.swing.Icon;
 
 public class Game {
     private final long appid;
@@ -40,7 +40,7 @@ public class Game {
         return this.thumbnail;
     }
 
-    public JLabel getImage() {
+    public Icon getImage() {
         return ImageDataAccessObject.getImage(this);
     }
 

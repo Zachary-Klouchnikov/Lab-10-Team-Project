@@ -3,7 +3,7 @@ package entity;
 import java.util.List;
 import java.util.ArrayList;
 import data_access.ImageDataAccessObject;
-import javax.swing.JLabel;
+import javax.swing.Icon;
 
 public class User {
     private final long steamid;
@@ -52,7 +52,7 @@ public class User {
         return this.profilePicture;
     }
     
-    public JLabel getImage() {
+    public Icon getImage() {
         return ImageDataAccessObject.getImage(this);
     }
 
