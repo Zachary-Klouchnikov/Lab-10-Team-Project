@@ -14,7 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ReviewAccessObject {
-    public ArrayList<String> ReviewDisplay(User friend, OkHttpClient client) {
+    private final OkHttpClient client = new OkHttpClient().newBuilder().build();
+    public ArrayList<String> ReviewDisplay(User friend) {
         long friendId = friend.getId();
         ArrayList<String> out = new ArrayList<>();
         List<Game> lib = friend.getLibrary();
@@ -33,8 +34,8 @@ public class ReviewAccessObject {
                     cursor = responseBody.getString("cursor");
                     JSONArray reviews = responseBody.getJSONArray("reviews");
                     for (int j = 0; j < reviews.length(); ++j) {
-                        if (reviews.getJSONObject(j).getJSONObject("author").getString("steamid").equals(friendId)) {
-                            out.add(reviews.getJSONObject(j).getString("review"));
+                        if (reviews.getJSONObject(j).getJSONObject("author").getString("steamid").equals(String.valueOf(friendId))) {
+                            out.add(reviews.getJSONObject(j).getString("use_case/review"));
                             flag = 1;
                             break;
                         }
