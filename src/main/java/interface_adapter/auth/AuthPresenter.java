@@ -5,6 +5,8 @@ import use_case.auth.AuthOutputData;
 import interface_adapter.ViewManagerModel;
 import interface_adapter.loggedin.LoggedinState;
 import interface_adapter.loggedin.LoggedinViewModel;
+import entity.SessionManager;
+import java.util.Collections;
 
 public class AuthPresenter implements AuthOutputBoundary {
     private final AuthViewModel authViewModel;
@@ -25,6 +27,12 @@ public class AuthPresenter implements AuthOutputBoundary {
         state.setId(outputData.getId());
         state.setFriendLabels(outputData.getFriendLabels());
         state.setGameLabels(outputData.getGameLabels());
+        SessionManager.getInstance().getCurrentUser().ifPresent(state::setUser);
+        if (state.getUser() != null) {
+            state.setFriends(state.getUser().getFriends());
+        } else {
+            state.setFriends(Collections.emptyList());
+        }
         this.loggedinViewModel.firePropertyChange();
 
         this.authViewModel.setState(new AuthState());

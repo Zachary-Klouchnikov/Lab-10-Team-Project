@@ -10,7 +10,7 @@ $ export APIKEY=<ACTUAL_API_KEY>
 to compile and run:
 ```
 $ mvn compile
-$ mvn exec:java -Dexec.mainClass="app.SteamWrappedApp"
+$ mvn exec:java -Dexec.mainClass="app.AppBuilder"
 ```
 
 The readme should include information such as:

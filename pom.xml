@@ -49,15 +49,15 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <!-- here we specify that we want to use the main method within the App class -->
-                            <mainClass>app.Main</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                    <!-- here we specify that we want to use the main method within the App class -->
+                                    <mainClass>app.AppBuilder</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </plugin>
         </plugins>
     </build>
 

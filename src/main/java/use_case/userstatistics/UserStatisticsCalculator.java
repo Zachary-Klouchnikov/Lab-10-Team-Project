@@ -4,6 +4,7 @@ import entity.Game;
 import entity.User;
 import use_case.userstatistics.UserStatisticsOutputData.GameStatData;
 import use_case.userstatistics.UserStatisticsOutputData.PlaytimePoint;
+import data_access.ImageDataAccessObject;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -44,7 +45,7 @@ public class UserStatisticsCalculator {
         return new UserStatisticsOutputData(
                 user.getUsername(),
                 user.getId(),
-                user.getImage(),
+                ImageDataAccessObject.getImage(user),
                 totalPlaytimeHours,
                 totalPlaytimeMessage,
                 mostPlayed,
@@ -90,7 +91,7 @@ public class UserStatisticsCalculator {
                         g.getTitle(),
                         g.getPlaytime() / 60,
                         g.getRecentPlaytime() / 60,
-                        g.getImage()))
+                        ImageDataAccessObject.getImage(g)))
                 .orElse(null);
     }
 
@@ -119,7 +120,7 @@ public class UserStatisticsCalculator {
                         g.getTitle(),
                         g.getPlaytime() / 60,
                         g.getRecentPlaytime() / 60,
-                        g.getImage()))
+                        ImageDataAccessObject.getImage(g)))
                 .collect(Collectors.toList());
     }
 
@@ -150,7 +151,7 @@ public class UserStatisticsCalculator {
                         g.getTitle(),
                         g.getPlaytime() / 60,
                         g.getRecentPlaytime() / 60,
-                        g.getImage()))
+                        ImageDataAccessObject.getImage(g)))
                 .orElse(null);
     }
 
@@ -189,7 +190,7 @@ public class UserStatisticsCalculator {
                         g.getTitle(),
                         g.getPlaytime() / 60,
                         g.getRecentPlaytime() / 60,
-                        g.getImage()))
+                        ImageDataAccessObject.getImage(g)))
                 .collect(Collectors.toList());
     }
 
@@ -210,7 +211,7 @@ public class UserStatisticsCalculator {
                         g.getTitle(),
                         total,
                         recent,
-                        g.getImage()));
+                        ImageDataAccessObject.getImage(g)));
             }
         }
         return oldFavorites;
@@ -224,7 +225,7 @@ public class UserStatisticsCalculator {
                         g.getTitle(),
                         0,
                         0,
-                        g.getImage()));
+                        ImageDataAccessObject.getImage(g)));
             }
         }
         return unplayed;

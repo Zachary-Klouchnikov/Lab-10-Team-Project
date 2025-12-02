@@ -27,6 +27,8 @@ public class RefreshInteractor implements RefreshInputBoundary {
         LoggedinState newState = new LoggedinState();
         newState.setId(newUser.getId());
         newState.setName(newUser.getUsername());
+        newState.setUser(newUser);
+        newState.setFriends(newUser.getFriends());
         newState.setFriendLabels(newUser.getFriends().stream().map(User::getImage).toList());
         newState.setGameLabels(newUser.getLibrary().stream().map(Game::getImage).toList());
         newState.setProfilePicture(newUser.getImage());

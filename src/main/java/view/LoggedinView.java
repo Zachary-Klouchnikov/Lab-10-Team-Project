@@ -9,6 +9,8 @@ import interface_adapter.compareusers.CompareUsersController;
 import javax.swing.*;
 
 import data_access.ImageDataAccessObject;
+import entity.SessionManager;
+import entity.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +41,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
     private LogoutController logoutController = null;
     private RefreshController refreshController = null;
     private CompareUsersController compareUsersController = null;
+    private User user = null;
     private List<User> friends = new ArrayList<>();
 
     public LoggedinView(LoggedinViewModel loggedinViewModel) {
@@ -367,43 +370,52 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
     /**
      * Updates the displayed user information.
      */
-    private void updateUserInfo() {
-        if (user != null) {
-            usernameLabel.setText(user.getUsername());
-            steamIdLabel.setText("Steam ID: " + user.getId());
+    private void updateUserInfo(LoggedinState state) {
+        if (state == null) {
+            return;
+        }
 
-            // Update friend count
-            List<User> userFriends = user.getFriends();
-            friendCountLabel.setText("Friends: " + (userFriends != null ? userFriends.size() : 0));
-            friends = userFriends != null ? userFriends : new ArrayList<>();
+        this.user = state.getUser();
+        if (this.user == null) {
+            this.user = SessionManager.getInstance().getCurrentUser().orElse(null);
+        }
 
-            if (!friends.isEmpty()) {
-                JLabel[] friendLabels = new JLabel[friends.size()];
-                for (int i = 0; i < friends.size(); ++i) {
-                    User f = friends.get(i);
-                    JLabel label = new JLabel();
-                    label.setIcon(f.getImage());
-                    label.setText(f.getUsername());
-                    friendLabels[i] = label;
-                }
-                friendList.setListData(friendLabels);
-                friendList.setSelectedIndex(0);
-                updateCompareEnabled();
-            } else {
-                friendList.setListData(new JLabel[] { new JLabel("No friends found") });
-                compareButton.setEnabled(false);
-            }
+        usernameLabel.setText(state.getName() != null ? state.getName() : "");
+        steamIdLabel.setText(state.getId() != null ? "Steam ID: " + state.getId() : "Steam ID: -");
 
-        // Update game count and list
-        gameCountLabel.setText("Games: " + (!state.getGameLabels().isEmpty() ? state.getGameLabels().size() : 0));
+        friends = this.user != null && this.user.getFriends() != null
+                ? this.user.getFriends()
+                : new ArrayList<>();
 
-        if (!state.getGameLabels().isEmpty()) {
-            gameList.setListData(state.getGameLabels().toArray(new JLabel[0]));
+        List<JLabel> friendLabels = state.getFriendLabels() != null ? state.getFriendLabels() : new ArrayList<>();
+        int friendCount = !friends.isEmpty() ? friends.size() : friendLabels.size();
+        friendCountLabel.setText("Friends: " + friendCount);
+
+        if (!friendLabels.isEmpty()) {
+            friendList.setListData(friendLabels.toArray(new JLabel[0]));
+            friendList.setSelectedIndex(0);
+        } else if (!friends.isEmpty()) {
+            JLabel[] friendData = friends.stream().map(User::getImage).toArray(JLabel[]::new);
+            friendList.setListData(friendData);
+            friendList.setSelectedIndex(0);
+        } else {
+            friendList.setListData(new JLabel[] { new JLabel("No friends found") });
+        }
+
+        List<JLabel> gameLabels = state.getGameLabels() != null ? state.getGameLabels() : new ArrayList<>();
+        gameCountLabel.setText("Games: " + gameLabels.size());
+
+        if (!gameLabels.isEmpty()) {
+            gameList.setListData(gameLabels.toArray(new JLabel[0]));
         } else {
             gameList.setListData(new JLabel[] { new JLabel("No games found") });
         }
 
-        profilePicture.setIcon(state.getProfilePicture().getIcon());
+        if (state.getProfilePicture() != null) {
+            profilePicture.setIcon(state.getProfilePicture().getIcon());
+        }
+
+        updateCompareEnabled();
     }
 
     @Override
@@ -413,7 +425,13 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
+        if (!"state".equals(evt.getPropertyName())) {
+            return;
+        }
         final LoggedinState state = (LoggedinState) evt.getNewValue();
+        if (state == null) {
+            return;
+        }
         if (!state.getError().isEmpty()) {
             JOptionPane.showMessageDialog(
                 LoggedinView.this,

@@ -2,10 +2,13 @@ package view;
 
 import interface_adapter.userstatistics.UserStatisticsController;
 import interface_adapter.userstatistics.UserStatisticsState;
+import interface_adapter.userstatistics.UserStatisticsPresenter;
 import interface_adapter.userstatistics.UserStatisticsViewData;
 import interface_adapter.userstatistics.UserStatisticsViewData.GameStatViewData;
 import interface_adapter.userstatistics.UserStatisticsViewData.PlaytimePointViewData;
 import interface_adapter.userstatistics.UserStatisticsViewModel;
+import use_case.userstatistics.UserStatisticsInteractor;
+import entity.User;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,6 +44,18 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         this.viewModel = viewModel;
         this.viewModel.addPropertyChangeListener(this);
         initUI();
+    }
+
+    public static UserStatisticsPanel createForUser(User user) {
+        UserStatisticsViewModel viewModel = new UserStatisticsViewModel();
+        UserStatisticsPresenter presenter = new UserStatisticsPresenter(viewModel);
+        UserStatisticsInteractor interactor = new UserStatisticsInteractor(presenter);
+        UserStatisticsController controller = new UserStatisticsController(interactor);
+
+        UserStatisticsPanel panel = new UserStatisticsPanel(viewModel);
+        panel.setController(controller);
+        controller.loadStatistics(user);
+        return panel;
     }
 
     public void setController(UserStatisticsController controller) {
