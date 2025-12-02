@@ -1,12 +1,9 @@
 package entity;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
-
 import data_access.ImageDataAccessObject;
-
-import javax.swing.JLabel;
+import javax.swing.Icon;
 
 public class User {
     private final long steamid;
@@ -22,6 +19,7 @@ public class User {
         this.friends = friends;
         this.library = games;
         this.profilePicture = profile;
+
 
         this.recentGames = new ArrayList<>();
         for (int i = 0; i < games.size(); ++i) {

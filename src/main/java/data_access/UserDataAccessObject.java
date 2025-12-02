@@ -14,8 +14,6 @@ import data_access.ImageDataAccessObject;
 
 // NOTE: All Steamapi calls are of the format: 
 // https://api.steampowered.com/<Interface>/<Method>/v<Version>/?key=<apikey>&<args>
-
-// This is the DAO for a logged in user. (Steamid -> User object)
 public class UserDataAccessObject {
     private static final String apikey = System.getenv("APIKEY");
     private final OkHttpClient client = new OkHttpClient().newBuilder().build();
@@ -29,10 +27,10 @@ public class UserDataAccessObject {
      */
     public User get(long steamid) {
         // Friends
-        List<Long> ids = getFriendList(steamid, client);
-        List<User> friends = getUserData(ids, client);
+        List<Long> ids = getFriendList(steamid);
+        List<User> friends = getUserData(ids);
         //Games
-        ArrayList<Game> lib = getUserLibrary(steamid, client);
+        ArrayList<Game> lib = getUserLibrary(steamid);
 
         String username = "";
         String avatar = "";
@@ -40,18 +38,20 @@ public class UserDataAccessObject {
             Request request = new Request.Builder()
                 .url(String.format("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%d", apikey, steamid))
                 .build();
-            final Response response = client.newCall(request).execute();
+            final Response response = this.client.newCall(request).execute();
             final JSONObject responseBody = new JSONObject(response.body().string());
 
             final JSONArray playerList = responseBody.getJSONObject("response").getJSONArray("players");
-            if (playerList.length() == 0)
-                throw new RuntimeException("Invalid steamid!");
+            if (playerList.length() == 0) {
+                throw new RuntimeException("Gave an inavlid steamid!");
+            }
 
             JSONObject player = playerList.getJSONObject(0);
             username = player.getString("personaname");
             avatar = player.getString("avatarhash");
         } catch (IOException | JSONException e) {
-            throw new RuntimeException(e + "[AT: Get]");
+            e.printStackTrace();
+            throw new RuntimeException("Unable to fetch user data!");
         }
 
         User out = new User(steamid, username, friends, lib, avatar);
@@ -76,17 +76,19 @@ public class UserDataAccessObject {
         return out;
     }
 
-    private ArrayList<Long> getFriendList(long steamid, OkHttpClient client) {
+    private ArrayList<Long> getFriendList(long steamid) {
         ArrayList<Long> out = new ArrayList<>();
 
         try {
             Request request = new Request.Builder()
                 .url(String.format("https://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%d&relationship=%s", apikey, steamid, "all"))
                 .build();
-            final Response response = client.newCall(request).execute();
+            final Response response = this.client.newCall(request).execute();
             final JSONObject responseBody = new JSONObject(response.body().string());
-            if (responseBody.isEmpty())
-                throw new RuntimeException("Friendslist is private!");
+            if (responseBody.isEmpty()) {
+                // If friendslist is private, treat as if they have no friends.
+                return new ArrayList<>();
+            }
 
             final JSONArray friendlist = responseBody.getJSONObject("friendslist").getJSONArray("friends");
             for (int i = 0; i < friendlist.length(); ++i) {
@@ -94,55 +96,62 @@ public class UserDataAccessObject {
                 out.add(Long.parseLong(person.getString("steamid")));
             }
         } catch (IOException | JSONException e) {
-            throw new RuntimeException(e + "[AT: FriendList]");
+            e.printStackTrace();
+            return new ArrayList<>();
         }
         return out;
     }
 
-    // NOTE: (steamid, personaname, avatar, avatarmedium, avatarfull, avatarhash, realname, loccountrycode, gameid, gameextrainfo)
-    private ArrayList<User> getUserData(List<Long> ids, OkHttpClient client) {
+    // NOTE: (gameid, gameextrainfo) <- Important for joining friends
+    private ArrayList<User> getUserData(List<Long> ids) {
         ArrayList<User> out = new ArrayList<User>();
+        if (ids.isEmpty()) {
+            return new ArrayList<>();
+        }
 
         long[][] processedIds = chunkIdList(ids);
         for (int i = 0; i < processedIds.length; ++i) {
             String stringedIds = "";
-            for (int j = 0; j < processedIds[i].length; ++j)
+            for (int j = 0; j < processedIds[i].length; ++j) {
                 stringedIds += processedIds[i][j] + ",";
+            }
 
-            // TODO: additional error handling required here.
             try {
                 Request request = new Request.Builder()
-                    .url(String.format("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",apikey, stringedIds))
+                    .url(String.format("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s", apikey, stringedIds))
                     .build();
-                final Response response = client.newCall(request).execute();
+                final Response response = this.client.newCall(request).execute();
                 final JSONObject responseBody = new JSONObject(response.body().string());
 
                 final JSONArray playerList = responseBody.getJSONObject("response").getJSONArray("players");
                 for (int idx = 0; idx < playerList.length(); ++idx) {
                     JSONObject player = playerList.getJSONObject(idx);
-                    long playerId = Long.parseLong(player.getString("steamid"));
-                    ArrayList<Game> lib = getUserLibrary(playerId, client);
-
                     // Friends don't get their own friendlist. 
-                    User user = new User(playerId, player.getString("personaname"), null, lib, player.getString("avatarhash"));
+                    User user = new User(
+                        Long.parseLong(player.getString("steamid")), 
+                        player.getString("personaname"), 
+                        null, 
+                        getUserLibrary(Long.parseLong(player.getString("steamid"))), 
+                        player.getString("avatarhash"));
                     ImageDataAccessObject.downloadImage(user);
                     out.add(user);
                 }
             } catch (IOException | JSONException e) {
-                throw new RuntimeException(e + "[AT: UserData]");
+                e.printStackTrace();
+                return out;
             }
         }
 
         return out;
     }
 
-    private ArrayList<Game> getUserLibrary(long steamid, OkHttpClient client) {
+    private ArrayList<Game> getUserLibrary(long steamid) {
         ArrayList<Game> out = new ArrayList<>();
         try {
             Request request = new Request.Builder()
                 .url(String.format("https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%d&format=json&include_appinfo=true", apikey, steamid))
                 .build();
-            final Response response = client.newCall(request).execute();
+            final Response response = this.client.newCall(request).execute();
             final JSONObject responseBody = new JSONObject(response.body().string());
 
             // The response will ALWAYS return with a "response" object
@@ -154,8 +163,12 @@ public class UserDataAccessObject {
             final JSONArray library = responseBody.getJSONObject("response").getJSONArray("games");
             for(int i = 0; i < library.length(); i++) {
                 JSONObject game = library.getJSONObject(i);
-                int recent = game.has("playtime_2weeks") ? game.getInt("playtime_2weeks") : 0;
-                Game g = new Game(game.getLong("appid"), game.getString("name"), game.getInt("playtime_forever"), game.getString("img_icon_url"), recent);
+                Game g = new Game(
+                    game.getLong("appid"), 
+                    game.getString("name"), 
+                    game.getInt("playtime_forever"), 
+                    game.getString("img_icon_url"), 
+                    game.has("playtime_2weeks") ? game.getInt("playtime_2weeks") : 0);
                 ImageDataAccessObject.downloadImage(g);
                 out.add(g);
             }

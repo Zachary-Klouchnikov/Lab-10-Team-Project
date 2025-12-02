@@ -1,6 +1,6 @@
-package ui;
+package view;
 
-import auth.SessionManager;
+import entity.SessionManager;
 import entity.User;
 import entity.Game;
 
