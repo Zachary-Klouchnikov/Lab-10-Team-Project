@@ -1,6 +1,5 @@
 package view;
 
-import data_access.SteamGameLauncher;
 import entity.User;
 
 import javax.swing.*;
