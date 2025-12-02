@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.ArrayList;
 import data_access.ImageDataAccessObject;
 import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
 
 public class User {
     private final long steamid;
@@ -52,8 +54,8 @@ public class User {
         return this.profilePicture;
     }
     
-    public Icon getImage() {
-        return ImageDataAccessObject.getImage(this);
+    public JLabel getImage() {
+        return new JLabel(this.username, ImageDataAccessObject.getImage(this), SwingConstants.TRAILING);
     }
 
     // Convinient string representation for debug purposes.
