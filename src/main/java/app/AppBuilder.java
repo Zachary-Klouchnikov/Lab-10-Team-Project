@@ -14,6 +14,9 @@ import use_case.launch.LaunchInputBoundary;
 import use_case.launch.LaunchInteractor;
 import use_case.launch.LaunchOutputBoundary;
 import use_case.logout.*;
+import use_case.recent.RecentInputBoundary;
+import use_case.recent.RecentInteractor;
+import use_case.recent.RecentOutputBoundary;
 import use_case.refresh.*;
 import use_case.compareusers.*;
 import view.*;
@@ -79,7 +82,7 @@ public class AppBuilder {
 
     public AppBuilder addRefreshUseCase() {
         final RefreshOutputBoundary outputBoundary = new RefreshPresenter(loggedinModel, authViewModel, viewManagerModel);
-        final RefreshInputBoundary inputBoundary = new RefreshInteractor(outputBoundary);
+        final RefreshInputBoundary inputBoundary = new RefreshInteractor(outputBoundary, userDAO);
         RefreshController refreshController = new RefreshController(inputBoundary);
 
         loggedin.setRefreshController(refreshController);
@@ -101,6 +104,14 @@ public class AppBuilder {
         CompareUsersController controller = new CompareUsersController(inputBoundary);
         comparisonView.setController(controller);
         loggedin.setCompareUsersController(controller);
+        return this;
+    }
+
+    public AppBuilder addRecentUseCase() {
+        final RecentOutputBoundary outputBoundary = new RecentPresenter(loggedinModel);
+        final RecentInputBoundary inputBoundary = new RecentInteractor(outputBoundary, userDAO);
+        RecentController controller = new RecentController(inputBoundary);
+        loggedin.setRecentController(controller);
         return this;
     }
 
@@ -136,6 +147,7 @@ public class AppBuilder {
             .addRefreshUseCase()
             .addLogoutUseCase()
             .addComparisonUseCase()
+            .addRecentUseCase()
             .build();
 
         app.pack();

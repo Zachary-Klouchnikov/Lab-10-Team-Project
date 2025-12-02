@@ -5,6 +5,7 @@ import interface_adapter.loggedin.LaunchController;
 import interface_adapter.loggedin.LoggedinState;
 import interface_adapter.logout.LogoutController;
 import interface_adapter.loggedin.LoggedinViewModel;
+import interface_adapter.loggedin.RecentController;
 import interface_adapter.loggedin.RefreshController;
 import interface_adapter.compareusers.CompareUsersController;
 
@@ -35,9 +36,11 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
     private JLabel gameCountLabel;
     private JList<JLabel> gameList;
     private JList<JLabel> friendList;
+    private JList<JLabel> recentList;
     private JButton logoutButton;
     private JButton refreshButton;
 
+    private JButton recentButton;
     private JButton launchButton;
     private JButton compareButton;
     private JButton reviewButton;
@@ -48,6 +51,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
     private LogoutController logoutController = null;
     private RefreshController refreshController = null;
     private CompareUsersController compareUsersController = null;
+    private RecentController recentController = null;
     private User user = null;
     private List<User> friends = new ArrayList<>();
 
@@ -302,11 +306,76 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         friendPanel.add(compareButton, gbc);
         gbc.anchor = GridBagConstraints.WEST;
 
+        JPanel recentPanel = new JPanel(new GridBagLayout());
+        recentPanel.setBackground(new Color(42,42, 42));
+
+        // Recent section
+        JLabel recentLabel = new JLabel("Recent Activity:");
+        recentLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        recentLabel.setForeground(Color.WHITE);
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        recentPanel.add(recentLabel, gbc);
+
+
+        // Recent list
+        recentList = new JList<>();
+        recentList.setBackground(new Color(30, 30, 30));
+        recentList.setForeground(Color.WHITE);
+        recentList.setFont(new Font("Arial", Font.PLAIN, 12));
+        recentList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        recentList.setCellRenderer(new ListCellRenderer<JLabel>() {
+            private final JLabel label = new JLabel();
+            @Override
+            public Component getListCellRendererComponent(
+                JList<? extends JLabel> list,
+                JLabel value,
+                int index, 
+                boolean isSelected, 
+                boolean cellHasFocus) {
+                    label.setText(value.getText());
+                    label.setIcon(value.getIcon());
+                    label.setOpaque(true);
+                    label.setBackground(list.getBackground());
+                    label.setForeground(list.getForeground());
+
+                    return label;
+            }
+        });
+
+
+        JScrollPane recentScrollPane = new JScrollPane(recentList);
+        recentScrollPane.setPreferredSize(new Dimension(400, 200));
+        recentScrollPane.setBorder(BorderFactory.createLineBorder(new Color(60, 60, 60)));
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        recentPanel.add(recentScrollPane, gbc);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0f;
+        gbc.weighty = 0f;
+
+        recentButton = createButton("Refresh", new Color(0, 200, 83));
+        recentButton.addActionListener(e -> 
+            recentController.execute()
+        );
+        gbc.gridwidth = 1;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.EAST;
+        recentPanel.add(recentButton, gbc);
+        gbc.anchor = GridBagConstraints.WEST;
+
 
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(new Color(42, 42, 42));
-        gbc.gridy = 0; 
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.BOTH;
+        panel.add(recentPanel, gbc);
+        gbc.gridy = 1; 
+        gbc.gridwidth = 1;
         panel.add(gamePanel, gbc);
         panel.add(friendPanel, gbc);
         return panel;
@@ -409,7 +478,6 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
             friendList.setListData(new JLabel[] { new JLabel("No friends found") });
         }
 
-        List<Game> games = user.getLibrary();
         List<JLabel> gameLabels = state.getGameLabels() != null ? state.getGameLabels() : new ArrayList<>();
         gameCountLabel.setText("Games: " + gameLabels.size());
 
@@ -423,6 +491,12 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
 
         if (state.getProfilePicture() != null) {
             profilePicture.setIcon(state.getProfilePicture().getIcon());
+        }
+        
+        if (!state.getRecent().isEmpty()) {
+            recentList.setListData(state.getRecent().toArray(new JLabel[0]));
+        } else {
+            recentList.setListData(new JLabel[] { new JLabel("Nothing new!")});
         }
 
         updateCompareEnabled();
@@ -473,6 +547,10 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
 
     public void setCompareUsersController(CompareUsersController compareUsersController) {
         this.compareUsersController = compareUsersController;
+    }
+    
+    public void setRecentController(RecentController recentController) {
+        this.recentController = recentController;
     }
 
     private void updateCompareEnabled() {
