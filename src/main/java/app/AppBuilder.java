@@ -8,12 +8,14 @@ import interface_adapter.*;
 import interface_adapter.auth.*;
 import interface_adapter.loggedin.*;
 import interface_adapter.logout.*;
+import interface_adapter.compareusers.*;
 import use_case.auth.*;
 import use_case.launch.LaunchInputBoundary;
 import use_case.launch.LaunchInteractor;
 import use_case.launch.LaunchOutputBoundary;
 import use_case.logout.*;
 import use_case.refresh.*;
+import use_case.compareusers.*;
 import view.*;
 
 public class AppBuilder {
@@ -27,8 +29,10 @@ public class AppBuilder {
 
     private AuthView authView;
     private LoggedinView loggedin;
+    private ComparisonView comparisonView;
     private AuthViewModel authViewModel;
     private LoggedinViewModel loggedinModel;
+    private CompareUsersViewModel compareUsersViewModel;
 
     public AppBuilder () {
         cardPanel.setLayout(cardLayout);
@@ -45,6 +49,13 @@ public class AppBuilder {
         loggedinModel = new LoggedinViewModel();
         loggedin = new LoggedinView(loggedinModel);
         cardPanel.add(loggedin, loggedin.getViewName());
+        return this;
+    }
+
+    public AppBuilder addComparisonView() {
+        compareUsersViewModel = new CompareUsersViewModel();
+        comparisonView = new ComparisonView(compareUsersViewModel);
+        cardPanel.add(comparisonView, comparisonView.getViewName());
         return this;
     }
 
@@ -83,6 +94,16 @@ public class AppBuilder {
         return this;
     }
 
+    public AppBuilder addComparisonUseCase() {
+        final CompareUsersOutputBoundary outputBoundary =
+                new CompareUsersPresenter(compareUsersViewModel, viewManagerModel, loggedinModel);
+        final CompareUsersInputBoundary inputBoundary = new CompareUsersInteractor(outputBoundary);
+        CompareUsersController controller = new CompareUsersController(inputBoundary);
+        comparisonView.setController(controller);
+        loggedin.setCompareUsersController(controller);
+        return this;
+    }
+
     public JFrame build() {
         final JFrame app = new JFrame("Steam-Wrapped");
         app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -114,6 +135,10 @@ public class AppBuilder {
                 .addRefreshUseCase()
                 .addLogoutUseCase()
                 .build();
+
+            .addComparisonView()
+            .addComparisonUseCase()
+
 
         app.pack();
         app.setLocationRelativeTo(null);
