@@ -306,7 +306,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         friendPanel.add(compareButton, gbc);
         gbc.anchor = GridBagConstraints.WEST;
 
-        JPanel recentPanel = new JPanel();
+        JPanel recentPanel = new JPanel(new GridBagLayout());
         recentPanel.setBackground(new Color(42,42, 42));
 
         // Recent section
@@ -344,7 +344,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         });
 
 
-        JScrollPane recentScrollPane = new JScrollPane(gameList);
+        JScrollPane recentScrollPane = new JScrollPane(recentList);
         recentScrollPane.setPreferredSize(new Dimension(400, 200));
         recentScrollPane.setBorder(BorderFactory.createLineBorder(new Color(60, 60, 60)));
         gbc.gridy = 1;
@@ -478,7 +478,6 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
             friendList.setListData(new JLabel[] { new JLabel("No friends found") });
         }
 
-        List<Game> games = user.getLibrary();
         List<JLabel> gameLabels = state.getGameLabels() != null ? state.getGameLabels() : new ArrayList<>();
         gameCountLabel.setText("Games: " + gameLabels.size());
 

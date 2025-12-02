@@ -6,7 +6,6 @@ import entity.User;
 import java.util.List;
 import java.util.ArrayList;
 import javax.swing.JLabel;
-import javax.swing.Icon;
 
 public class RecentInteractor implements RecentInputBoundary {
     private RecentOutputBoundary outputBoundary;
