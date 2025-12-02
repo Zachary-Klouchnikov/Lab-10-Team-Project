@@ -59,7 +59,7 @@ public class AuthInteractor implements AuthInputBoundary {
                     bar.setVisible(false);
                     button.setEnabled(true);
 
-                    List<JLabel> games = user.getLibrary()
+                    List<Icon> games = user.getLibrary()
                         .stream()
                         .map(Game::getImage)
                         .toList();

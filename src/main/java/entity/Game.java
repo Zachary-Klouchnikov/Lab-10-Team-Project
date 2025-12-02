@@ -1,8 +1,8 @@
 package entity;
 
 import data_access.ImageDataAccessObject;
-import javax.swing.JLabel;
-import javax.swing.SwingConstants;
+
+import javax.swing.*;
 
 public class Game {
     private final long appid;
@@ -41,8 +41,8 @@ public class Game {
         return this.thumbnail;
     }
 
-    public JLabel getImage() {
-        return new JLabel(this.name, ImageDataAccessObject.getImage(this), SwingConstants.TRAILING);
+    public Icon getImage() {
+        return ImageDataAccessObject.getImage(this);
     }
 
     @Override
