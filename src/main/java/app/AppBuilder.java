@@ -82,7 +82,7 @@ public class AppBuilder {
 
     public AppBuilder addRefreshUseCase() {
         final RefreshOutputBoundary outputBoundary = new RefreshPresenter(loggedinModel, authViewModel, viewManagerModel);
-        final RefreshInputBoundary inputBoundary = new RefreshInteractor(outputBoundary);
+        final RefreshInputBoundary inputBoundary = new RefreshInteractor(outputBoundary, userDAO);
         RefreshController refreshController = new RefreshController(inputBoundary);
 
         loggedin.setRefreshController(refreshController);

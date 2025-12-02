@@ -18,11 +18,4 @@ public class LogoutPresenter implements LogoutOutputBoundary {
         this.viewManagerModel.setState(authViewModel.getViewName());
         this.viewManagerModel.firePropertyChange();
     }
-
-    @Override
-    public void prepareFailureView() {
-        // How did we get here?
-        this.viewManagerModel.setState(authViewModel.getViewName());
-        this.viewManagerModel.firePropertyChange();
-    }
 }

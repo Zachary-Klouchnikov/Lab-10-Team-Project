@@ -16,9 +16,4 @@ public class RecentPresenter implements RecentOutputBoundary {
         this.loggedinViewModel.getState().setRecent(data.getLabelList());       
         this.loggedinViewModel.firePropertyChange();
     }
-
-    @Override 
-    public void prepareFailureView(String errMsg) {
-        JOptionPane.showMessageDialog(null, errMsg, "Recent Panel Error", JOptionPane.ERROR_MESSAGE);
-    }
 }

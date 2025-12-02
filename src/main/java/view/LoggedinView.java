@@ -359,7 +359,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
 
         recentButton = createButton("Refresh", new Color(0, 200, 83));
         recentButton.addActionListener(e -> 
-            recentController.execute(this.loggedinViewModel.getState())
+            recentController.execute()
         );
         gbc.gridwidth = 1;
         gbc.gridy = 2;
