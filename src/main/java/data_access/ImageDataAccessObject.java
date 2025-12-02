@@ -23,8 +23,6 @@ public class ImageDataAccessObject {
      */
     public static void downloadImage(User user) {
         try {
-            URL url = URI.create(String.format("https://avatars.steamstatic.com/%s.jpg", user.getImageHash())).toURL();
-            BufferedImage image = ImageIO.read(url);
             Path projectRoot = getProjectRoot();
             if (projectRoot == null) {
                 return;
@@ -32,14 +30,17 @@ public class ImageDataAccessObject {
             Path imageDir = projectRoot.resolve(Paths.get("src", "main", "resources", "users"));
             File output = imageDir.resolve(String.format("%s.jpg", user.getImageHash())).toFile();
 
-            // Do not write if exists already.
-            if (!output.exists()) {
-                ImageIO.write(image, "jpg", output);
+            // Skip download if already cached
+            if (output.exists()) {
+                return;
             }
+
+            URL url = URI.create(String.format("https://avatars.steamstatic.com/%s.jpg", user.getImageHash())).toURL();
+            BufferedImage image = ImageIO.read(url);
+            ImageIO.write(image, "jpg", output);
         } catch (Exception e) {
             // Ignore errors, rely on fallback image.
             e.printStackTrace();
-            return;
         }
     }
 
@@ -51,8 +52,6 @@ public class ImageDataAccessObject {
      */
     public static void downloadImage(Game game) {
         try {
-            URL url = URI.create(String.format("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg", game.getId(), game.getImageHash())).toURL();
-            BufferedImage image = ImageIO.read(url);
             Path projectRoot = getProjectRoot();
             if (projectRoot == null) {
                 return;
@@ -60,13 +59,20 @@ public class ImageDataAccessObject {
             Path imageDir = projectRoot.resolve(Paths.get("src", "main", "resources", "games"));
             File output = imageDir.resolve(String.format("%s.jpg", game.getImageHash())).toFile();
 
-            if (!output.exists()) {
-                ImageIO.write(image, "jpg", output);
+            // Skip download if already cached
+            if (output.exists()) {
+                return;
             }
+
+            URL url = URI
+                    .create(String.format("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg",
+                            game.getId(), game.getImageHash()))
+                    .toURL();
+            BufferedImage image = ImageIO.read(url);
+            ImageIO.write(image, "jpg", output);
         } catch (Exception e) {
             // Rely on fallback.
             e.printStackTrace();
-            return;
         }
     }
 
@@ -133,34 +139,37 @@ public class ImageDataAccessObject {
     /**
      * Fetches the default icon from disk.
      *
-     * @return JLabel Returns the default image imbedded into a JLabel, or a text label as a stand-in.
+     * @return JLabel Returns the default image imbedded into a JLabel, or a text
+     *         label as a stand-in.
      */
     public static JLabel getDefaultImage() {
-        JLabel out;
         Path projRoot = getProjectRoot();
-        Path imageDir = projRoot.resolve(Paths.get("src", "main", "resources"));
-        File imageFile = imageDir.resolve("default.jpg").toFile();
-        try {
-            BufferedImage image = ImageIO.read(imageFile);
-            out = new JLabel(new ImageIcon(image));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+        if (projRoot != null) {
+            Path imageDir = projRoot.resolve(Paths.get("src", "main", "resources"));
+            File imageFile = imageDir.resolve("default.jpg").toFile();
+            try {
+                BufferedImage image = ImageIO.read(imageFile);
+                return new JLabel(new ImageIcon(image));
+            } catch (IOException e) {
+                // Fall through to placeholder
+            }
         }
-        return out;
+        // Return a placeholder label instead of null
+        JLabel placeholder = new JLabel("[No Image]");
+        placeholder.setPreferredSize(new java.awt.Dimension(64, 64));
+        return placeholder;
     }
 
     private static Path getProjectRoot() {
         try {
-            return Paths.get(ImageDataAccessObject
-                    .class
+            return Paths.get(ImageDataAccessObject.class
                     .getProtectionDomain()
                     .getCodeSource()
                     .getLocation()
                     .toURI()
                     .normalize())
-                .getParent()
-                .getParent();
+                    .getParent()
+                    .getParent();
         } catch (Exception e) {
             // How tf did this fail?
             e.printStackTrace();

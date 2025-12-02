@@ -1,7 +1,9 @@
 package use_case.refresh;
 
 import entity.User;
+import entity.Game;
 import entity.SessionManager;
+import interface_adapter.loggedin.*;
 import data_access.UserDataAccessObject;
 
 public class RefreshInteractor implements RefreshInputBoundary {
@@ -14,13 +16,21 @@ public class RefreshInteractor implements RefreshInputBoundary {
     }
 
     @Override
-    public void execute(User user) {
+    public void execute(LoggedinState state) {
         if (!SessionManager.getInstance().hasActiveSession()) {
             refreshOutputBoundary.prepareFailureView("Session Expired!");
         }
 
-        User newUser = userDAO.get(user.getId());
+        User newUser = userDAO.get(state.getId());
         SessionManager.getInstance().refreshSession();
-        refreshOutputBoundary.prepareSuccessView(newUser);
+
+        LoggedinState newState = new LoggedinState();
+        newState.setId(newUser.getId());
+        newState.setName(newUser.getUsername());
+        newState.setFriendLabels(newUser.getFriends().stream().map(User::getImage).toList());
+        newState.setGameLabels(newUser.getLibrary().stream().map(Game::getImage).toList());
+        newState.setProfilePicture(newUser.getImage());
+
+        refreshOutputBoundary.prepareSuccessView(newState);
     }
 }

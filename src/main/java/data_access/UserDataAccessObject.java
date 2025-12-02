@@ -17,7 +17,15 @@ import data_access.ImageDataAccessObject;
 public class UserDataAccessObject {
     private static final String apikey = System.getenv("APIKEY");
     private final OkHttpClient client = new OkHttpClient().newBuilder().build();
+    private User user;
 
+    /** 
+     * Retreives the cached logged-in User.
+     * @return Cached User object.
+     */
+    public User getUser() {
+        return this.user;
+    }
     /**
      * Fetches a User object with their profile, friends, and games.
      *
@@ -56,6 +64,9 @@ public class UserDataAccessObject {
 
         User out = new User(steamid, username, friends, lib, avatar);
         ImageDataAccessObject.downloadImage(out);
+        
+        // Cache the user.
+        this.user = out;
         return out;
     }
 
