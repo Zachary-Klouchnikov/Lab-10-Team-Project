@@ -16,12 +16,7 @@ public class LaunchInteractor implements LaunchInputBoundary {
     }
 
     @Override
-    public void execute(JLabel selectedLabel, Game selectedGame) {
-
-        if (selectedLabel == null) {
-            launchOutputBoundary.showSelectionFailure("No game selected.");
-            return;
-        }
+    public void execute(Game selectedGame) {
 
         if (selectedGame == null) {
             launchOutputBoundary.showGameNotFoundFailure("Game not found.");

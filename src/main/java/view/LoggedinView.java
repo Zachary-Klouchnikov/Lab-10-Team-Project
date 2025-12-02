@@ -205,9 +205,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         // PlayButton.
         launchButton = createButton("Launch", new Color(0, 200, 83));
         launchButton.addActionListener(e -> {
-            JLabel selectedLabel = gameList.getSelectedValue();
-            Game selectedGame = gameLookup.get(selectedLabel);
-            launchController.execute(selectedLabel, selectedGame);
+            launchController.execute(this.user.getLibrary().get(gameList.getSelectedIndex()));
         });
         gbc.gridy = 2;
         gbc.gridwidth = 1;
@@ -418,15 +416,6 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         gameLookup.clear();
 
         if (!gameLabels.isEmpty()) {
-            for (Game g : games) {
-                JLabel label = new JLabel();
-
-                label.setIcon(g.getImage());
-                label.setText(g.getTitle());
-
-                gameLabels.add(label);
-                gameLookup.put(label, g);
-            }
             gameList.setListData(gameLabels.toArray(new JLabel[0]));
         } else {
             gameList.setListData(new JLabel[] { new JLabel("No games found") });

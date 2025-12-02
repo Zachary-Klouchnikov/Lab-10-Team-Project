@@ -132,6 +132,7 @@ public class AppBuilder {
             .addLoggedinView()
             .addComparisonView()
             .addAuthUseCase()
+                .addLaunchUseCase()
             .addRefreshUseCase()
             .addLogoutUseCase()
             .addComparisonUseCase()

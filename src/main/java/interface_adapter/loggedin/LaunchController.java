@@ -12,7 +12,7 @@ public class LaunchController {
         this.launchInputBoundary = lib;
     }
 
-    public void execute(JLabel selectedLabel, Game selectedGame) {
-        launchInputBoundary.execute(selectedLabel, selectedGame);
+    public void execute(Game selectedGame) {
+        launchInputBoundary.execute(selectedGame);
     }
 }
