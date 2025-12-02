@@ -100,7 +100,7 @@ class UserStatisticsPanelTest {
         java.util.List<entity.Game> bins = new java.util.ArrayList<>();
         bins.add(game("A", 60, 0));     // 1 hr
         bins.add(game("B", 600, 0));    // 10 hr
-        bins.add(game("C", 2000, 0));   // ~33 hr
+        bins.add(game("C", 2000, 0));   // 33 hr
         bins.add(game("D", 3600, 0));   // 60 hr
         bins.add(game("E", 6000, 0));   // 100 hr
         bins.add(game("F", 999999, 0)); // huge
@@ -157,8 +157,8 @@ class UserStatisticsPanelTest {
         ui.UserStatisticsPanel p = new ui.UserStatisticsPanel(makeUser(new java.util.ArrayList<>()));
 
         java.util.List<entity.Game> games = new java.util.ArrayList<>();
-        games.add(game("OldFav", 3000, 0));   // 50 hrs total, low recent
-        games.add(game("Unplayed", 0, 0));    // backlog
+        games.add(game("OldFav", 3000, 0));
+        games.add(game("Unplayed", 0, 0));
 
         javax.swing.JPanel panel = p.createOldFavoritesAndUnplayedGamesPanel(games);
         assertTrue(panel.getComponentCount() > 0);
@@ -180,10 +180,8 @@ class UserStatisticsPanelTest {
 
     @Test
     void testMostPlayedNullBranch() {
-        // User with a normal, non-null empty library — safe for constructor
         ui.UserStatisticsPanel p = new ui.UserStatisticsPanel(makeUser(List.of()));
 
-        // Create a list of null games ONLY for the UI method (not for User)
         List<entity.Game> nullList = new ArrayList<>();
         nullList.add(null);
         nullList.add(null);
@@ -224,7 +222,7 @@ class UserStatisticsPanelTest {
         List<entity.Game> g4 = List.of(game("D",0,3000));
         assertNotNull(p.createRecentlyPlayedPanel(g4));
 
-        // >=60 (the ELSE branch)
+        // >=60
         List<entity.Game> g5 = List.of(game("E",0,6000));
         assertNotNull(p.createRecentlyPlayedPanel(g5));
     }
