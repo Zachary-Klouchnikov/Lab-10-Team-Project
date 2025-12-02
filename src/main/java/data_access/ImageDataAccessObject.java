@@ -136,18 +136,21 @@ public class ImageDataAccessObject {
      * @return JLabel Returns the default image imbedded into a JLabel, or a text label as a stand-in.
      */
     public static JLabel getDefaultImage() {
-        JLabel out;
         Path projRoot = getProjectRoot();
-        Path imageDir = projRoot.resolve(Paths.get("src", "main", "resources"));
-        File imageFile = imageDir.resolve("default.jpg").toFile();
-        try {
-            BufferedImage image = ImageIO.read(imageFile);
-            out = new JLabel(new ImageIcon(image));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+        if (projRoot != null) {
+            Path imageDir = projRoot.resolve(Paths.get("src", "main", "resources"));
+            File imageFile = imageDir.resolve("default.jpg").toFile();
+            try {
+                BufferedImage image = ImageIO.read(imageFile);
+                return new JLabel(new ImageIcon(image));
+            } catch (IOException e) {
+                // Fall through to placeholder
+            }
         }
-        return out;
+        // Return a placeholder label instead of null
+        JLabel placeholder = new JLabel("[No Image]");
+        placeholder.setPreferredSize(new java.awt.Dimension(64, 64));
+        return placeholder;
     }
 
     private static Path getProjectRoot() {

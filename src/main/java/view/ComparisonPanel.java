@@ -30,7 +30,7 @@ public class ComparisonPanel extends JPanel {
 
         add(topBar, BorderLayout.NORTH);
 
-        JPanel leftPanel = new UserStatisticsPanel(user);
+        JPanel leftPanel = UserStatisticsPanel.createForUser(user);
 
         cardLayout = new CardLayout();
         rightContainer = new JPanel(cardLayout);
@@ -99,7 +99,7 @@ public class ComparisonPanel extends JPanel {
         if (selected == null) return;
 
         statsCard.removeAll();
-        statsCard.add(new UserStatisticsPanel(selected), BorderLayout.CENTER);
+        statsCard.add(UserStatisticsPanel.createForUser(selected), BorderLayout.CENTER);
 
         statsCard.revalidate();
         statsCard.repaint();
