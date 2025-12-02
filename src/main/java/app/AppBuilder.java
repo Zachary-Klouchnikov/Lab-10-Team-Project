@@ -14,6 +14,9 @@ import use_case.launch.LaunchInputBoundary;
 import use_case.launch.LaunchInteractor;
 import use_case.launch.LaunchOutputBoundary;
 import use_case.logout.*;
+import use_case.recent.RecentInputBoundary;
+import use_case.recent.RecentInteractor;
+import use_case.recent.RecentOutputBoundary;
 import use_case.refresh.*;
 import use_case.compareusers.*;
 import view.*;
@@ -104,6 +107,14 @@ public class AppBuilder {
         return this;
     }
 
+    public AppBuilder addRecentUseCase() {
+        final RecentOutputBoundary outputBoundary = new RecentPresenter(loggedinModel);
+        final RecentInputBoundary inputBoundary = new RecentInteractor(outputBoundary, userDAO);
+        RecentController controller = new RecentController(inputBoundary);
+        loggedin.setRecentController(controller);
+        return this;
+    }
+
     public JFrame build() {
         final JFrame app = new JFrame("Steam-Wrapped");
         app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -136,6 +147,7 @@ public class AppBuilder {
             .addRefreshUseCase()
             .addLogoutUseCase()
             .addComparisonUseCase()
+            .addRecentUseCase()
             .build();
 
         app.pack();

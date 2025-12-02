@@ -12,6 +12,7 @@ public class LoggedinState {
     private JLabel profilePicture = new JLabel();
     private List<JLabel> gameLabels = new ArrayList<>();
     private List<JLabel> userLabels = new ArrayList<>();
+    private List<JLabel> recentLabels = new ArrayList<>();
     private String errorMessage = ""; 
     private List<User> friends = new ArrayList<>();
 
@@ -77,5 +78,13 @@ public class LoggedinState {
 
     public void setFriends(List<User> friends) {
         this.friends = friends;
+    }
+
+    public List<JLabel> getRecent() {
+        return this.recentLabels;
+    }
+
+    public void setRecent(List<JLabel> recent) {
+        this.recentLabels = recent;
     }
 }
