@@ -1,9 +1,9 @@
 package use_case.refresh;
 
-import entity.User;
+import interface_adapter.loggedin.LoggedinState;
 
 public interface RefreshOutputBoundary {
-    public void prepareSuccessView(User user);
+    public void prepareSuccessView(LoggedinState state);
 
     public void prepareFailureView(String errMsg);
 }

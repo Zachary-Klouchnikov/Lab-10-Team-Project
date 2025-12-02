@@ -3,7 +3,6 @@ package interface_adapter.loggedin;
 import use_case.refresh.RefreshOutputBoundary;
 import interface_adapter.auth.AuthViewModel;
 import interface_adapter.ViewManagerModel;
-import entity.User;
 
 public class RefreshPresenter implements RefreshOutputBoundary{
     private LoggedinViewModel loggedinViewModel;
@@ -17,17 +16,16 @@ public class RefreshPresenter implements RefreshOutputBoundary{
     }   
 
     @Override
-    public void prepareSuccessView(User user) {
-        LoggedinState newState = loggedinViewModel.getState();
-        newState.setUser(user);
+    public void prepareSuccessView(LoggedinState state) {
+        loggedinViewModel.setState(state);
         loggedinViewModel.firePropertyChange();
     }
 
     @Override
     public void prepareFailureView(String errMsg) {
-        LoggedinState newState = loggedinViewModel.getState();
-        newState.setError(errMsg);       
-        newState.setUser(null);
+        LoggedinState newState = new LoggedinState();
+        newState.setError(errMsg);
+        loggedinViewModel.setState(newState);
         loggedinViewModel.firePropertyChange();
 
         viewManagerModel.setState(authViewModel.getViewName());

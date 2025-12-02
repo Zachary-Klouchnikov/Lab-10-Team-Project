@@ -1,11 +1,14 @@
 package use_case.auth;
 
 import entity.User;
+import entity.Game;
 import entity.SessionManager;
 import data_access.UserDataAccessObject;
 import java.util.concurrent.CompletableFuture;
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class AuthInteractor implements AuthInputBoundary {
     private final AuthOutputBoundary authOutputBoundary;
@@ -56,7 +59,16 @@ public class AuthInteractor implements AuthInputBoundary {
                     bar.setVisible(false);
                     button.setEnabled(true);
 
-                    authOutputBoundary.prepareSuccessView(new AuthOutputData(user));
+                    List<JLabel> games = user.getLibrary()
+                        .stream()
+                        .map(Game::getImage)
+                        .toList();
+
+                    List<JLabel> friends = user.getFriends()
+                        .stream()
+                        .map(User::getImage)
+                        .toList();
+                    authOutputBoundary.prepareSuccessView(new AuthOutputData(user.getId(), user.getUsername(), user.getImage(), games, friends));
                 } catch (Exception e) {
                     String errMsg = "Login Failed: " + e.getMessage();
                     status.setText(errMsg);
