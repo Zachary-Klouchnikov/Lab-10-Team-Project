@@ -8,9 +8,15 @@ import interface_adapter.*;
 import interface_adapter.auth.*;
 import interface_adapter.loggedin.*;
 import interface_adapter.logout.*;
+import interface_adapter.review.ReviewController;
+import interface_adapter.review.ReviewPresenter;
+import interface_adapter.review.ReviewViewModel;
 import use_case.auth.*;
 import use_case.logout.*;
 import use_case.refresh.*;
+import use_case.review.ReviewInputBoundary;
+import use_case.review.ReviewInteractor;
+import use_case.review.ReviewOutputBoundary;
 import view.*;
 
 public class AppBuilder {
@@ -26,6 +32,7 @@ public class AppBuilder {
     private LoggedinView loggedin;
     private AuthViewModel authViewModel;
     private LoggedinViewModel loggedinModel;
+    private ReviewViewModel reviewViewModel;
 
     public AppBuilder () {
         cardPanel.setLayout(cardLayout);
@@ -70,6 +77,14 @@ public class AppBuilder {
         return this;
     }
 
+    public AppBuilder addReviewUseCase() {
+        final ReviewOutputBoundary outputBoundary = new ReviewPresenter(reviewViewModel, viewManagerModel);
+        final ReviewInputBoundary inputBoundary = new ReviewInteractor(outputBoundary);
+        ReviewController reviewController = new ReviewController(inputBoundary);
+        loggedin.setReviewController(reviewController);
+        return this;
+    }
+
     public JFrame build() {
         final JFrame app = new JFrame("Steam-Wrapped");
         app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -94,6 +109,7 @@ public class AppBuilder {
         });
 
         JFrame app = new AppBuilder()
+            .addReviewUseCase()
             .addAuthView()
             .addLoggedinView()
             .addAuthUseCase()

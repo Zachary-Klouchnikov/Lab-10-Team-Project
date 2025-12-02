@@ -6,6 +6,7 @@ import interface_adapter.loggedin.LoggedinState;
 import interface_adapter.logout.LogoutController;
 import interface_adapter.loggedin.LoggedinViewModel;
 import interface_adapter.loggedin.RefreshController;
+import interface_adapter.review.ReviewController;
 
 import javax.swing.*;
 
@@ -39,6 +40,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
 
     private LogoutController logoutController = null;
     private RefreshController refreshController = null;
+    private ReviewController reviewController = null;
 
     public LoggedinView(LoggedinViewModel loggedinViewModel) {
         this.loggedinViewModel = loggedinViewModel;
@@ -249,7 +251,7 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         friendScollPane.setPreferredSize(new Dimension(400, 200));
         friendScollPane.setBorder(BorderFactory.createLineBorder(new Color(60, 60, 60)));
         gbc.gridy = 1;
-        gbc.gridwidth = 2;
+        gbc.gridwidth = 3;
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
@@ -277,6 +279,17 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
         friendPanel.add(compareButton, gbc);
         gbc.anchor = GridBagConstraints.WEST;
 
+        reviewButton = createButton("Reviews", new Color(0, 200, 83));
+        reviewButton.addActionListener(e -> {
+            if (friendList.getSelectedIndex() != -1){
+                reviewController.execute(user.getFriends().get(friendList.getSelectedIndex()));
+            }
+        });
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        friendPanel.add(reviewButton, gbc);
+
+
 
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(new Color(42, 42, 42));
@@ -295,13 +308,6 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
     private JPanel createFooterPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         panel.setBackground(new Color(42, 42, 42));
-
-        reviewButton = createButton("Reviews", new Color(0, 200, 83));
-        reviewButton.addActionListener(e -> {
-            System.err.println("TODO: Implement Review View!");
-        }); 
-        panel.add(reviewButton);
-
         // Refresh button
         refreshButton = createButton("Refresh Data", new Color(0, 114, 188));
         refreshButton.addActionListener(e -> {
@@ -438,5 +444,9 @@ public class LoggedinView extends JPanel implements ActionListener, PropertyChan
 
     public void setRefreshController(RefreshController refreshController) {
         this.refreshController = refreshController;
+    }
+
+    public void setReviewController(ReviewController reviewController) {
+        this.reviewController = reviewController;
     }
 }

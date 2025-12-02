@@ -35,7 +35,7 @@ public class ReviewAccessObject {
                     JSONArray reviews = responseBody.getJSONArray("reviews");
                     for (int j = 0; j < reviews.length(); ++j) {
                         if (reviews.getJSONObject(j).getJSONObject("author").getString("steamid").equals(String.valueOf(friendId))) {
-                            out.add(reviews.getJSONObject(j).getString("review"));
+                            out.add(reviews.getJSONObject(j).getString("use_case/review"));
                             flag = 1;
                             break;
                         }
