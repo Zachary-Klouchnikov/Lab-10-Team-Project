@@ -64,7 +64,7 @@ public class UserStatisticsPanel extends JPanel {
         idLabel.setForeground(Color.LIGHT_GRAY);
         idLabel.setFont(idLabel.getFont().deriveFont(Font.PLAIN, 12f));
 
-        JLabel imgLabel = user.getImage();
+        JLabel imgLabel = new JLabel(user.getImage());
 
         ImageIcon icon = (ImageIcon) imgLabel.getIcon();
         int targetHeight = nameLabel.getPreferredSize().height + idLabel.getPreferredSize().height + 4;
@@ -249,7 +249,7 @@ public class UserStatisticsPanel extends JPanel {
         leftContent.add(Box.createVerticalStrut(10));
 
         contentRow.add(leftContent, BorderLayout.WEST);
-        contentRow.add(mostPlayed.getImage(), BorderLayout.EAST);
+        contentRow.add(new JLabel(mostPlayed.getImage()), BorderLayout.EAST);
 
         panel.add(contentRow);
         panel.add(wrapChart(createMostPlayedChart(hours, totalPlaytime - hours, mostPlayed.getTitle())));
@@ -562,7 +562,7 @@ public class UserStatisticsPanel extends JPanel {
         leftContent.add(Box.createVerticalStrut(10));
 
         contentRow.add(leftContent, BorderLayout.WEST);
-        contentRow.add(recentlyPlayed.getImage());
+        contentRow.add(new JLabel(recentlyPlayed.getImage()));
         panel.add(contentRow);
 
         int totalRecentPlaytime = 0;
