@@ -125,7 +125,7 @@ public class UserStatisticsPanel extends JPanel {
         add(footerPanel, BorderLayout.SOUTH);
     }
 
-    private JPanel createTotalPlaytimePanel(int totalPlaytime) {
+    JPanel createTotalPlaytimePanel(int totalPlaytime) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -187,7 +187,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    private JPanel createMostPlayedPanel(List<Game> games, int totalPlaytime) {
+    JPanel createMostPlayedPanel(List<Game> games, int totalPlaytime) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -274,7 +274,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    private JPanel wrapChart(ChartPanel chartPanel) {
+    JPanel wrapChart(ChartPanel chartPanel) {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(false);
         wrapper.add(chartPanel, BorderLayout.CENTER);
@@ -282,7 +282,7 @@ public class UserStatisticsPanel extends JPanel {
         return wrapper;
     }
 
-    private JPanel createTopFiveGamesPanel(List<Game> games) {
+    JPanel createTopFiveGamesPanel(List<Game> games) {
 
         JPanel panel = new JPanel();
         panel.setOpaque(false);
@@ -369,7 +369,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    private ChartPanel createMostPlayedChart(int small, int big, String label) {
+    ChartPanel createMostPlayedChart(int small, int big, String label) {
 
         DefaultPieDataset dataset = new DefaultPieDataset();
         dataset.setValue(label, small);
@@ -403,7 +403,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    private JPanel createPlaytimeDistributionPanel(List<Game> games) {
+    JPanel createPlaytimeDistributionPanel(List<Game> games) {
 
         JPanel panel = new JPanel();
         panel.setOpaque(false);
@@ -505,8 +505,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-
-    private JPanel createRecentlyPlayedPanel(List<Game> games){
+    JPanel createRecentlyPlayedPanel(List<Game> games){
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -580,7 +579,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    private JPanel createTopFiveRecentGamesPanel(List<Game> games) {
+    JPanel createTopFiveRecentGamesPanel(List<Game> games) {
 
         JPanel panel = new JPanel();
         panel.setOpaque(false);
@@ -667,7 +666,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    private JPanel createScatterPlaytimeVsRecentPanel(List<Game> games) {
+    JPanel createScatterPlaytimeVsRecentPanel(List<Game> games) {
 
         JPanel panel = new JPanel();
         panel.setOpaque(false);
@@ -745,7 +744,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    private JPanel createOldFavoritesAndUnplayedGamesPanel(List<Game> games) {
+    JPanel createOldFavoritesAndUnplayedGamesPanel(List<Game> games) {
 
         JPanel panel = new JPanel();
         panel.setOpaque(false);
@@ -859,7 +858,7 @@ public class UserStatisticsPanel extends JPanel {
         return panel;
     }
 
-    private JPanel makeSmallGameLabel(Game g, boolean showHours) {
+    JPanel makeSmallGameLabel(Game g, boolean showHours) {
         JPanel p = new JPanel(new BorderLayout());
         p.setOpaque(false);
 
