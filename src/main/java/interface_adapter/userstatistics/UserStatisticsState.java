@@ -1,16 +1,14 @@
 package interface_adapter.userstatistics;
 
-import use_case.userstatistics.UserStatisticsOutputData;
-
 public class UserStatisticsState {
-    private UserStatisticsOutputData statistics = null;
+    private UserStatisticsViewData statistics = null;
     private String errorMessage = "";
 
-    public UserStatisticsOutputData getStatistics() {
+    public UserStatisticsViewData getStatistics() {
         return statistics;
     }
 
-    public void setStatistics(UserStatisticsOutputData statistics) {
+    public void setStatistics(UserStatisticsViewData statistics) {
         this.statistics = statistics;
     }
 
