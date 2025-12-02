@@ -1,16 +1,11 @@
 package view;
 
-import entity.User;
 import interface_adapter.userstatistics.UserStatisticsController;
-import interface_adapter.userstatistics.UserStatisticsPresenter;
 import interface_adapter.userstatistics.UserStatisticsState;
+import interface_adapter.userstatistics.UserStatisticsViewData;
+import interface_adapter.userstatistics.UserStatisticsViewData.GameStatViewData;
+import interface_adapter.userstatistics.UserStatisticsViewData.PlaytimePointViewData;
 import interface_adapter.userstatistics.UserStatisticsViewModel;
-import use_case.userstatistics.UserStatisticsInputBoundary;
-import use_case.userstatistics.UserStatisticsInteractor;
-import use_case.userstatistics.UserStatisticsOutputBoundary;
-import use_case.userstatistics.UserStatisticsOutputData;
-import use_case.userstatistics.UserStatisticsOutputData.GameStatData;
-import use_case.userstatistics.UserStatisticsOutputData.PlaytimePoint;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,26 +36,6 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
     private UserStatisticsViewModel viewModel;
     private UserStatisticsController controller;
     private JPanel statsContainer;
-
-    /**
-     * Factory method to create a fully-wired UserStatisticsPanel for a given user.
-     * Creates the complete Clean Architecture stack and immediately loads statistics.
-     *
-     * @param user The user to display statistics for
-     * @return A fully configured UserStatisticsPanel
-     */
-    public static UserStatisticsPanel createForUser(User user) {
-        UserStatisticsViewModel viewModel = new UserStatisticsViewModel();
-        UserStatisticsOutputBoundary presenter = new UserStatisticsPresenter(viewModel);
-        UserStatisticsInputBoundary interactor = new UserStatisticsInteractor(presenter);
-        UserStatisticsController controller = new UserStatisticsController(interactor);
-
-        UserStatisticsPanel panel = new UserStatisticsPanel(viewModel);
-        panel.setController(controller);
-        controller.loadStatistics(user);
-
-        return panel;
-    }
 
     public UserStatisticsPanel(UserStatisticsViewModel viewModel) {
         this.viewModel = viewModel;
@@ -111,7 +86,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         statsContainer.repaint();
     }
 
-    private void renderStatistics(UserStatisticsOutputData stats) {
+    private void renderStatistics(UserStatisticsViewData stats) {
         statsContainer.removeAll();
 
         // Header panel
@@ -137,7 +112,12 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
 
         // Recently played
         if (stats.getMostRecentGame() != null) {
-            statsContainer.add(createRecentlyPlayedPanel(stats.getMostRecentGame(), stats.getTotalRecentPlaytimeMinutes(), stats.getRecentPlaytimeMessage()));
+            statsContainer.add(createRecentlyPlayedPanel(
+                    stats.getMostRecentGame(),
+                    stats.getMostRecentPlaytimeMinutes(),
+                    stats.getOtherRecentPlaytimeMinutes(),
+                    stats.getRecentPlaytimeMessage()
+            ));
         }
 
         // Top 5 recent games
@@ -166,7 +146,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         statsContainer.repaint();
     }
 
-    private JPanel createHeaderPanel(UserStatisticsOutputData stats) {
+    private JPanel createHeaderPanel(UserStatisticsViewData stats) {
         JLabel nameLabel = new JLabel(stats.getUsername());
         nameLabel.setForeground(Color.WHITE);
         nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD, 20f));
@@ -250,7 +230,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         return panel;
     }
 
-    private JPanel createMostPlayedPanel(GameStatData mostPlayed, int totalPlaytime, String message) {
+    private JPanel createMostPlayedPanel(GameStatViewData mostPlayed, int totalPlaytime, String message) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -313,7 +293,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         return wrapper;
     }
 
-    private JPanel createTopFiveGamesPanel(List<GameStatData> topFive) {
+    private JPanel createTopFiveGamesPanel(List<GameStatViewData> topFive) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -330,7 +310,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         panel.add(Box.createVerticalStrut(10));
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        for (GameStatData g : topFive) {
+        for (GameStatViewData g : topFive) {
             dataset.addValue(g.getPlaytimeHours(), "Playtime (hrs)", g.getTitle());
         }
 
@@ -472,7 +452,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         return panel;
     }
 
-    private JPanel createRecentlyPlayedPanel(GameStatData mostRecent, int totalRecentMinutes, String message) {
+    private JPanel createRecentlyPlayedPanel(GameStatViewData mostRecent, int mostRecentMinutes, int otherRecentMinutes, String message) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -516,8 +496,11 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         contentRow.add(new JLabel(mostRecent.getImage()));
         panel.add(contentRow);
 
-        int recentMinutes = mostRecent.getRecentPlaytimeHours() * 60;
-        panel.add(wrapChart(createPieChart(recentMinutes, totalRecentMinutes - recentMinutes, mostRecent.getTitle())));
+        panel.add(wrapChart(createPieChart(
+                mostRecentMinutes,
+                otherRecentMinutes,
+                mostRecent.getTitle()
+        )));
 
         JLabel footer = new JLabel(message, SwingConstants.CENTER);
         footer.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -532,7 +515,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         return panel;
     }
 
-    private JPanel createTopFiveRecentGamesPanel(List<GameStatData> topFive) {
+    private JPanel createTopFiveRecentGamesPanel(List<GameStatViewData> topFive) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -549,7 +532,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         panel.add(Box.createVerticalStrut(10));
 
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        for (GameStatData g : topFive) {
+        for (GameStatViewData g : topFive) {
             dataset.addValue(g.getRecentPlaytimeHours(), "Playtime (hrs)", g.getTitle());
         }
 
@@ -597,7 +580,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         return panel;
     }
 
-    private JPanel createScatterPlaytimeVsRecentPanel(List<PlaytimePoint> scatterData) {
+    private JPanel createScatterPlaytimeVsRecentPanel(List<PlaytimePointViewData> scatterData) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -614,7 +597,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         panel.add(Box.createVerticalStrut(10));
 
         XYSeries series = new XYSeries("Games");
-        for (PlaytimePoint p : scatterData) {
+        for (PlaytimePointViewData p : scatterData) {
             series.add(p.getTotalHours(), p.getRecentHours());
         }
 
@@ -656,7 +639,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
         return panel;
     }
 
-    private JPanel createOldFavoritesAndUnplayedGamesPanel(List<GameStatData> oldFavorites, List<GameStatData> unplayedGames) {
+    private JPanel createOldFavoritesAndUnplayedGamesPanel(List<GameStatViewData> oldFavorites, List<GameStatViewData> unplayedGames) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -698,7 +681,7 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
             none.setAlignmentX(Component.CENTER_ALIGNMENT);
             left.add(none);
         } else {
-            for (GameStatData g : oldFavorites) {
+            for (GameStatViewData g : oldFavorites) {
                 left.add(makeSmallGameLabel(g.getTitle(), g.getPlaytimeHours(), false));
                 left.add(Box.createVerticalStrut(3));
             }
@@ -729,8 +712,8 @@ public class UserStatisticsPanel extends JPanel implements PropertyChangeListene
             none.setAlignmentX(Component.CENTER_ALIGNMENT);
             right.add(none);
         } else {
-            for (GameStatData g : unplayedGames) {
-                left.add(makeSmallGameLabel(g.getTitle(), 0, true));
+            for (GameStatViewData g : unplayedGames) {
+                right.add(makeSmallGameLabel(g.getTitle(), 0, true));
                 right.add(Box.createVerticalStrut(3));
             }
         }
