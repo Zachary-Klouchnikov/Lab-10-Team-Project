@@ -6,6 +6,8 @@ import java.util.List;
 
 public class SteamGameLauncher {
 
+    public boolean launchCalled;
+
     /**
      * Launches a Steam game with launch arguments.
      *

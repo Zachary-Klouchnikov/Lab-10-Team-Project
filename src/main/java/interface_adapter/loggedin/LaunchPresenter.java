@@ -12,11 +12,6 @@ public class LaunchPresenter implements LaunchOutputBoundary {
     }
 
     @Override
-    public void showSelectionFailure(String message) {
-        JOptionPane.showMessageDialog(null, message, "Selection Error", JOptionPane.ERROR_MESSAGE);
-    }
-
-    @Override
     public void showGameNotFoundFailure(String message) {
         JOptionPane.showMessageDialog(null, message, "Game Not Found", JOptionPane.ERROR_MESSAGE);
     }
