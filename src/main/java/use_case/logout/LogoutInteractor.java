@@ -11,10 +11,6 @@ public class LogoutInteractor implements LogoutInputBoundary {
 
     @Override
     public void execute() {
-        if (!SessionManager.getInstance().hasActiveSession()) {
-            logoutOutputBoundary.prepareFailureView();
-        }
-
         SessionManager.getInstance().clearSession();
         logoutOutputBoundary.prepareSuccessView();
     }

@@ -6,7 +6,6 @@ import entity.User;
 import java.util.List;
 import java.util.ArrayList;
 import javax.swing.JLabel;
-import javax.swing.Icon;
 
 public class RecentInteractor implements RecentInputBoundary {
     private RecentOutputBoundary outputBoundary;
@@ -18,13 +17,8 @@ public class RecentInteractor implements RecentInputBoundary {
     }
 
     @Override
-    public void execute(RecentInputData data) {
-        long id = data.getId();
+    public void execute() {
         User user = userDAO.getUser();
-
-        if (id != user.getId()) {
-            outputBoundary.prepareFailureView("Issue with fetching recent data!");
-        }
 
         List<JLabel> list = getRecentPlayedGames(user);
         for (User friend : user.getFriends()) {

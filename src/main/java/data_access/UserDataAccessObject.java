@@ -51,7 +51,7 @@ public class UserDataAccessObject {
 
             final JSONArray playerList = responseBody.getJSONObject("response").getJSONArray("players");
             if (playerList.length() == 0) {
-                throw new RuntimeException("Gave an inavlid steamid!");
+                throw new RuntimeException("Gave an invalid steamid!");
             }
 
             JSONObject player = playerList.getJSONObject(0);

@@ -9,7 +9,7 @@ public class RecentController {
         this.inputBoundary = inputBoundary;
     }
 
-    public void execute(LoggedinState state) {
-        this.inputBoundary.execute(new RecentInputData(state.getId()));
+    public void execute() {
+        this.inputBoundary.execute();
     }
 }

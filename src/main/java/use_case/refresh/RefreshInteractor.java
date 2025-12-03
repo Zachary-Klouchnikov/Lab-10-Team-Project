@@ -10,9 +10,9 @@ public class RefreshInteractor implements RefreshInputBoundary {
     private RefreshOutputBoundary refreshOutputBoundary;
     private UserDataAccessObject userDAO;
 
-    public RefreshInteractor(RefreshOutputBoundary refreshOutputBoundary) {
+    public RefreshInteractor(RefreshOutputBoundary refreshOutputBoundary, UserDataAccessObject userDAO) {
         this.refreshOutputBoundary = refreshOutputBoundary;
-        this.userDAO = new UserDataAccessObject();
+        this.userDAO = userDAO;
     }
 
     @Override
