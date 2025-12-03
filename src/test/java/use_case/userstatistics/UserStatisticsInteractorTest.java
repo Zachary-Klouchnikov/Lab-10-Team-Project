@@ -1,69 +1,134 @@
 package use_case.userstatistics;
 
+import entity.Game;
+import entity.User;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
-import entity.User;
+import java.util.List;
 
-public class UserStatisticsInteractorTest {
-    @Test 
-    void successTest() {
-        User user = new User(42069, "Name", new ArrayList<>(), new ArrayList<>(), "");
-        UserStatisticsInputData inputData = new UserStatisticsInputData(user);
+import static org.junit.jupiter.api.Assertions.*;
 
-        UserStatisticsOutputBoundary outputBoundary = new UserStatisticsOutputBoundary() {
-            @Override
-            public void prepareSuccessView(UserStatisticsOutputData data) {
-                assertEquals(user.getId(), data.getSteamId());
-                assertEquals(user.getUsername(), data.getUsername());
-            }
+class UserStatisticsInteractorTest {
 
-            @Override 
-            public void prepareFailureView(String errMsg) {
-                fail("Unreachable");
-            }
-        };
+    private static class CapturingOutputBoundary implements UserStatisticsOutputBoundary {
+        UserStatisticsOutputData successData;
+        String failureMessage;
 
-        UserStatisticsInputBoundary interactor = new UserStatisticsInteractor(outputBoundary);
-        interactor.execute(inputData);
+        @Override
+        public void prepareSuccessView(UserStatisticsOutputData outputData) {
+            this.successData = outputData;
+        }
+
+        @Override
+        public void prepareFailureView(String errorMessage) {
+            this.failureMessage = errorMessage;
+        }
     }
 
-    @Test 
-    void noUserTest() {
-        UserStatisticsInputData inputData = new UserStatisticsInputData(null);
+    private static class StubCalculator extends UserStatisticsCalculator {
+        private final UserStatisticsOutputData outputData;
+        private final RuntimeException toThrow;
 
-        UserStatisticsOutputBoundary outputBoundary = new UserStatisticsOutputBoundary() {
-            @Override
-            public void prepareSuccessView(UserStatisticsOutputData data) {
-                fail("Unreachable");
+        StubCalculator(UserStatisticsOutputData outputData) {
+            this.outputData = outputData;
+            this.toThrow = null;
+        }
+
+        StubCalculator(RuntimeException toThrow) {
+            this.outputData = null;
+            this.toThrow = toThrow;
+        }
+
+        @Override
+        public UserStatisticsOutputData calculate(User user) {
+            if (toThrow != null) {
+                throw toThrow;
             }
-
-            @Override 
-            public void prepareFailureView(String errMsg) {
-                assertEquals("User not found", errMsg);
-            }
-        };
-
-        UserStatisticsInputBoundary interactor = new UserStatisticsInteractor(outputBoundary);
-        interactor.execute(inputData);
+            return outputData;
+        }
     }
 
-    @Test 
-    void noDataTest() {
-        UserStatisticsOutputBoundary outputBoundary = new UserStatisticsOutputBoundary() {
-            @Override
-            public void prepareSuccessView(UserStatisticsOutputData data) {
-                fail("Unreachable");
-            }
+    private User user() {
+        return new User(1L, "Alice", new ArrayList<>(), new ArrayList<Game>(), "pic");
+    }
 
-            @Override 
-            public void prepareFailureView(String errMsg) {
-                assertEquals("No input provided", errMsg);
-            }
-        };
+    private UserStatisticsOutputData emptyOutput() {
+        return new UserStatisticsOutputData(
+                "Alice",
+                1L,
+                null,
+                0,
+                "",
+                null,
+                "",
+                List.of(),
+                new int[6],
+                new String[6],
+                null,
+                0,
+                "",
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of()
+        );
+    }
 
-        UserStatisticsInputBoundary interactor = new UserStatisticsInteractor(outputBoundary);
+    @Test
+    void execute_withValidInput_callsSuccess() {
+        CapturingOutputBoundary presenter = new CapturingOutputBoundary();
+        UserStatisticsOutputData output = emptyOutput();
+        UserStatisticsInteractor interactor = new UserStatisticsInteractor(presenter, new StubCalculator(output));
+
+        interactor.execute(new UserStatisticsInputData(user()));
+
+        assertSame(output, presenter.successData);
+        assertNull(presenter.failureMessage);
+    }
+
+    @Test
+    void constructor_withSingleParameterUsesDefaultCalculator() {
+        CapturingOutputBoundary presenter = new CapturingOutputBoundary();
+        UserStatisticsInteractor interactor = new UserStatisticsInteractor(presenter);
+
+        interactor.execute(new UserStatisticsInputData(user()));
+
+        assertNotNull(presenter.successData);
+        assertNull(presenter.failureMessage);
+    }
+
+    @Test
+    void execute_withNullInput_callsFailure() {
+        CapturingOutputBoundary presenter = new CapturingOutputBoundary();
+        UserStatisticsInteractor interactor = new UserStatisticsInteractor(presenter, new StubCalculator(emptyOutput()));
+
         interactor.execute(null);
+
+        assertEquals("No input provided", presenter.failureMessage);
+        assertNull(presenter.successData);
+    }
+
+    @Test
+    void execute_withNullUser_callsFailure() {
+        CapturingOutputBoundary presenter = new CapturingOutputBoundary();
+        UserStatisticsInteractor interactor = new UserStatisticsInteractor(presenter, new StubCalculator(emptyOutput()));
+
+        interactor.execute(new UserStatisticsInputData(null));
+
+        assertEquals("User not found", presenter.failureMessage);
+        assertNull(presenter.successData);
+    }
+
+    @Test
+    void execute_whenCalculatorThrows_callsFailure() {
+        CapturingOutputBoundary presenter = new CapturingOutputBoundary();
+        UserStatisticsInteractor interactor =
+                new UserStatisticsInteractor(presenter, new StubCalculator(new RuntimeException("boom")));
+
+        interactor.execute(new UserStatisticsInputData(user()));
+
+        assertEquals("Failed to load statistics: boom", presenter.failureMessage);
+        assertNull(presenter.successData);
     }
 }
