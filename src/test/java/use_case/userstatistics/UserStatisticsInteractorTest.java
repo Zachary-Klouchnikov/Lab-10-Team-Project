@@ -88,6 +88,17 @@ class UserStatisticsInteractorTest {
     }
 
     @Test
+    void constructor_withSingleParameterUsesDefaultCalculator() {
+        CapturingOutputBoundary presenter = new CapturingOutputBoundary();
+        UserStatisticsInteractor interactor = new UserStatisticsInteractor(presenter);
+
+        interactor.execute(new UserStatisticsInputData(user()));
+
+        assertNotNull(presenter.successData);
+        assertNull(presenter.failureMessage);
+    }
+
+    @Test
     void execute_withNullInput_callsFailure() {
         CapturingOutputBoundary presenter = new CapturingOutputBoundary();
         UserStatisticsInteractor interactor = new UserStatisticsInteractor(presenter, new StubCalculator(emptyOutput()));
